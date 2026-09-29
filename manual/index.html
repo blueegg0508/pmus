@@ -1,0 +1,899 @@
+<title>PMUS 사용 메뉴얼</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root {
+    --ground:#FAF8FA; --surface:#FFFFFF; --sunken:#F2EEF4; --line:#E0D8E4; --line-2:#EEE8F0;
+    --ink:#1F1A26; --ink-2:#4B4256; --ink-3:#786E84;
+    --gold:#8A6D18; --gold-bg:#F8F1DC; --plum:#4A3A5C; --plum-bg:#F1ECF5;
+    --warn:#9A3A12; --warn-bg:#FCEEE6; --safe:#22604A; --safe-bg:#E4F1EB;
+    --mark:#C2185B;                      /* 지시선 — 앱에 없는 색이라야 눈에 띈다 */
+    --serif:"Gowun Batang","Apple SD Gothic Neo",serif;
+    --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --ground:#1A1625; --surface:#241E31; --sunken:#2C2540; --line:#423857; --line-2:#322A44;
+        --ink:#F0EBF6; --ink-2:#C6BCD4; --ink-3:#968BA6;
+        --gold:#D4AF37; --gold-bg:#362B13; --plum:#BCA7D2; --plum-bg:#2E2640;
+        --warn:#F0A97F; --warn-bg:#3A2317; --safe:#8AD3B0; --safe-bg:#17332A;
+        --mark:#FF6392;
+    }
+}
+:root[data-theme="dark"] {
+    --ground:#1A1625; --surface:#241E31; --sunken:#2C2540; --line:#423857; --line-2:#322A44;
+    --ink:#F0EBF6; --ink-2:#C6BCD4; --ink-3:#968BA6;
+    --gold:#D4AF37; --gold-bg:#362B13; --plum:#BCA7D2; --plum-bg:#2E2640;
+    --warn:#F0A97F; --warn-bg:#3A2317; --safe:#8AD3B0; --safe-bg:#17332A;
+    --mark:#FF6392;
+}
+
+* { box-sizing: border-box; }
+body { margin:0; background:var(--ground); color:var(--ink); font-family:var(--sans);
+       font-size:15.5px; line-height:1.8; -webkit-font-smoothing:antialiased; }
+:focus-visible { outline:2px solid var(--gold); outline-offset:2px; border-radius:3px; }
+
+/* ── 상단 ─────────────────────────────────────────────── */
+.topbar { position:sticky; top:0; z-index:20; background:var(--ground); border-bottom:1px solid var(--line); }
+.topbar-in { max-width:1240px; margin:0 auto; padding-inline:20px; padding-block:10px;
+             display:flex; flex-direction:column; gap:9px; }
+.brandline { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.brandline .mark { font-family:var(--serif); font-weight:700; font-size:17px; }
+.brandline .build { font-family:var(--mono); font-size:11px; color:var(--ink-3);
+                    padding:1px 7px; border:1px solid var(--line); border-radius:999px; }
+.search-wrap { position:relative; display:flex; }
+#q { width:100%; font-family:var(--sans); font-size:15px; color:var(--ink); background:var(--surface);
+     border:1px solid var(--line); border-radius:6px; padding:9px 12px 9px 36px; }
+#q::placeholder { color:var(--ink-3); }
+.search-wrap::before { content:"🔍"; position:absolute; left:12px; top:50%; transform:translateY(-50%);
+                       font-size:13px; opacity:.6; pointer-events:none; }
+.navrow { display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; }
+.navrow::-webkit-scrollbar { display:none; }
+.navrow a { flex:0 0 auto; font-size:13px; font-weight:500; text-decoration:none; color:var(--ink-2);
+            background:var(--surface); border:1px solid var(--line); border-radius:999px;
+            padding:4px 12px; white-space:nowrap; }
+.navrow a.on { background:var(--gold-bg); border-color:var(--gold); color:var(--gold); font-weight:700; }
+
+/* ── 뼈대 ─────────────────────────────────────────────── */
+.page { max-width:1240px; margin:0 auto; padding-inline:20px; padding-block:36px 100px;
+        display:grid; grid-template-columns:minmax(0,1fr); gap:44px; }
+@media (min-width:980px) {
+    .page { grid-template-columns:190px minmax(0,1fr); gap:52px; align-items:start; }
+    .toc { position:sticky; top:118px; }
+    .navrow { display:none; }
+}
+.toc { display:none; flex-direction:column; gap:3px; font-size:13.5px; }
+@media (min-width:980px) { .toc { display:flex; } }
+.toc a { text-decoration:none; color:var(--ink-3); padding:4px 10px; border-left:2px solid var(--line-2); }
+.toc a.on { color:var(--gold); border-left-color:var(--gold); font-weight:700; }
+
+main { display:flex; flex-direction:column; gap:52px; min-width:0; }
+.hero { display:flex; flex-direction:column; gap:14px; }
+h1 { font-family:var(--serif); font-weight:700; font-size:clamp(28px,6.5vw,40px); line-height:1.3;
+     margin:0; text-wrap:balance; }
+.hero p { margin:0; color:var(--ink-2); max-width:60ch; }
+.hero .where { font-size:13.5px; color:var(--ink-2); background:var(--plum-bg);
+               border-radius:6px; padding:12px 15px; max-width:62ch; }
+.hero .where b { color:var(--ink); }
+
+section { display:flex; flex-direction:column; gap:22px; scroll-margin-top:130px; }
+h2 { font-family:var(--serif); font-weight:700; font-size:25px; line-height:1.35; margin:0;
+     padding-bottom:10px; border-bottom:2px solid var(--ink); text-wrap:balance; }
+h3 { font-size:16px; font-weight:700; margin:0; }
+p { margin:0; max-width:66ch; }
+.lede { color:var(--ink-2); }
+/* 앱 안의 버튼 이름. 앱에서 쓰는 알약 모양 칩을 그대로 가져온다 —
+   글에서도 버튼으로 보여야 화면에서 찾기 쉽다. */
+.k { display:inline-block; font-family:var(--sans); font-weight:700; font-size:.92em;
+     color:var(--gold); background:var(--gold-bg); border:1.5px solid var(--gold);
+     border-radius:999px; padding:1px 11px; white-space:nowrap; line-height:1.6;
+     vertical-align:baseline; }
+
+/* ── 화면 그림 + 지시선 ───────────────────────────────── */
+.fig { display:flex; flex-direction:column; gap:18px;
+       background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:20px; }
+/* 소제목은 그림과 설명 사이가 아니라 맨 위에 둔다. 가운데 있으면 폰에서
+   설명이 어디부터인지 한눈에 안 들어온다. */
+.fig-title { font-family:var(--serif); font-weight:700; font-size:20px; line-height:1.4;
+             color:var(--ink); padding-bottom:12px; border-bottom:2px solid var(--gold);
+             text-wrap:balance; }
+@media (min-width:620px) { .fig-title { font-size:22px; } }
+.fig-body { display:grid; grid-template-columns:minmax(0,1fr); gap:20px; }
+@media (min-width:620px) { .fig-body { grid-template-columns:minmax(210px,282px) minmax(0,1fr); gap:26px; } }
+.fig .shot { position:relative; width:100%; max-width:282px; margin-inline:auto;
+             border-radius:9px; overflow:hidden; border:1px solid var(--line);
+             background:#1A1625; }
+.fig .shot img { display:block; width:100%; height:auto; }
+.fig .shot svg { position:absolute; inset:0; width:100%; height:100%; }
+.fig .legend { display:flex; flex-direction:column; gap:14px; min-width:0; }
+
+.fig ol { margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:12px; }
+.fig ol li { display:grid; grid-template-columns:26px minmax(0,1fr); gap:12px; align-items:start; }
+.fig ol li .n { width:24px; height:24px; border-radius:50%; background:var(--mark); color:#fff;
+                font-family:var(--mono); font-size:13px; font-weight:600;
+                display:grid; place-items:center; margin-top:3px; }
+.fig ol li b { display:block; font-size:15px; }
+.fig ol li span { display:block; font-size:14px; color:var(--ink-2); line-height:1.7; }
+
+
+/* ── 예시 작업 영상 ───────────────────────────────────── */
+.clip { display:flex; flex-direction:column; gap:16px;
+        background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:20px; }
+.clip .fig-title { margin:0; }
+.clip-body { display:grid; grid-template-columns:minmax(0,1fr); gap:20px; }
+@media (min-width:620px) { .clip-body { grid-template-columns:minmax(240px,332px) minmax(0,1fr); gap:28px; } }
+/* 폰 화면이 통째로 들어간 영상이라 세로로 길다. 좁게 두면 글자가 안 보인다. */
+.clip video { display:block; width:100%; max-width:332px; margin-inline:auto;
+              border-radius:9px; border:1px solid var(--line); background:#0C0912; }
+.clip .steps { display:flex; flex-direction:column; gap:10px; min-width:0; }
+.clip .steps p { font-size:14.5px; color:var(--ink-2); }
+.clip ol { margin:0; padding-left:20px; display:flex; flex-direction:column; gap:6px; }
+.clip ol li { font-size:14.5px; color:var(--ink-2); }
+.clip ol li b { color:var(--ink); }
+
+/* ── 카드 · 목록 ──────────────────────────────────────── */
+.card { background:var(--surface); border:1px solid var(--line); border-radius:8px;
+        padding:20px 22px; display:flex; flex-direction:column; gap:12px; }
+.card p { font-size:14.5px; color:var(--ink-2); }
+.grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:16px; }
+ul.plain { margin:0; padding-left:20px; display:flex; flex-direction:column; gap:7px; }
+ul.plain li { color:var(--ink-2); font-size:14.5px; }
+ul.plain li b { color:var(--ink); }
+.pills { display:flex; flex-wrap:wrap; gap:6px; }
+.pills span { font-size:13px; background:var(--sunken); border:1px solid var(--line-2);
+              border-radius:999px; padding:3px 11px; color:var(--ink-2); }
+
+/* 세로 flex 로 두면 글 사이의 버튼 이름(.k) 이 한 줄을 통째로 차지한다.
+   글 속에 그대로 흐르도록 보통 흐름으로 둔다. */
+.note,.warn,.tip { border-radius:6px; padding:13px 16px; font-size:14.5px; line-height:1.85; }
+.note .h,.warn .h,.tip .h { display:block; margin-bottom:5px; font-size:15px; }
+.note { background:var(--plum-bg); color:var(--ink-2); }
+.warn { background:var(--warn-bg); color:var(--ink-2); border-left:3px solid var(--warn); }
+.tip  { background:var(--safe-bg); color:var(--ink-2); border-left:3px solid var(--safe); }
+.note b,.warn b,.tip b { color:var(--ink); }
+.warn .h { color:var(--warn); font-weight:700; }
+.tip .h { color:var(--safe); font-weight:700; }
+
+.chips { display:flex; flex-direction:column; }
+.chiprow { display:grid; grid-template-columns:minmax(120px,190px) minmax(0,1fr); gap:4px 18px;
+           padding:10px 0; border-bottom:1px solid var(--line-2); font-size:14.5px; }
+.chiprow:last-child { border-bottom:none; }
+.chiprow .c { font-family:var(--mono); font-size:13px; background:var(--sunken);
+              border:1px solid var(--line-2); border-radius:999px; padding:2px 10px;
+              justify-self:start; white-space:nowrap; }
+.chiprow span:last-child { color:var(--ink-2); }
+@media (max-width:600px) { .chiprow { grid-template-columns:minmax(0,1fr); } }
+
+.dial { display:grid; grid-template-columns:minmax(130px,210px) minmax(0,1fr); gap:4px 18px;
+        padding:9px 0; border-bottom:1px solid var(--line-2); font-size:14.5px; }
+.dial:last-child { border-bottom:none; }
+.dial dt { font-family:var(--mono); font-size:13.5px; color:var(--ink); }
+.dial dd { margin:0; color:var(--ink-2); }
+@media (max-width:600px) { .dial { grid-template-columns:minmax(0,1fr); gap:2px; } }
+.gh { font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase;
+      color:var(--ink-3); padding-bottom:4px; border-bottom:1px solid var(--line-2); }
+
+details.qa { background:var(--surface); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+details.qa + details.qa { margin-top:10px; }
+details.qa summary { cursor:pointer; padding:14px 18px; font-weight:700; font-size:15px;
+                     list-style:none; display:flex; gap:10px; align-items:baseline; }
+details.qa summary::-webkit-details-marker { display:none; }
+details.qa summary::before { content:"▸"; color:var(--gold); flex:0 0 auto; }
+details.qa[open] summary::before { content:"▾"; }
+.qa-body { padding:0 18px 16px 40px; display:flex; flex-direction:column; gap:10px;
+           font-size:14.5px; color:var(--ink-2); }
+.qa-body b { color:var(--ink); }
+
+[data-hit="0"] { display:none !important; }
+#noresult { background:var(--sunken); border-radius:8px; padding:26px; text-align:center;
+            color:var(--ink-2); font-size:15px; }
+footer { border-top:1px solid var(--line); padding-top:20px; font-family:var(--mono);
+         font-size:11.5px; color:var(--ink-3); line-height:1.9; }
+@media (prefers-reduced-motion:reduce) { * { animation:none !important; transition:none !important; } }
+</style>
+
+<div class="topbar">
+    <div class="topbar-in">
+        <div class="brandline">
+            <span class="mark">PMUS 사용 메뉴얼</span>
+            <span class="build" id="buildtag">—</span>
+        </div>
+        <div class="search-wrap">
+            <input id="q" type="search" placeholder="찾으실 내용을 적으세요 — 예: 재추출, 꼬리, 저장, 인식" autocomplete="off">
+        </div>
+        <nav class="navrow" id="navrow"></nav>
+    </div>
+</div>
+
+<div class="page">
+    <nav class="toc" id="toc"></nav>
+    <main>
+
+        <div class="hero">
+            <h1>눈썹과 입술, 고객 앞에서 바로 보여드리기</h1>
+            <p class="lede">
+                화면 그림에 <b>번호</b>를 붙여 두었습니다. 그림에서 번호를 찾고, 옆의 같은 번호를 읽으시면 됩니다.
+                그림은 <b>갤럭시 기준 실제 앱 화면</b>이며 앱을 고칠 때마다 다시 찍습니다.
+            </p>
+            <div class="where">
+                <b>이 메뉴얼은 어디서나 열립니다.</b> 갤럭시·아이폰·태블릿·PC·맥 어디서 링크를 열어도 화면에 맞춰 보입니다.
+                다만 <b>PMUS 앱 자체는 현재 안드로이드 전용</b>입니다.
+            </div>
+        </div>
+
+        <section id="s-start" data-sec="시작하기">
+            <h2>시작하기</h2>
+            <div class="fig" data-shot="01-license" data-cap="처음 열었을 때 — 라이선스 등록"
+                 data-search="라이선스 등록 기기 코드 등록 키 판매처 활성화"></div>
+
+            <div class="grid2">
+                <div class="card" data-search="교육용 무료 1일 체험 무료판 하루">
+                    <h3>교육용 무료판</h3>
+                    <p>등록 없이 <b>하루 동안</b> 모든 기능을 써보실 수 있는 판이 따로 있습니다.
+                       앱 이름에 <b>교육용</b>이라 표시되고, 정식판과 한 폰에 같이 깔립니다.</p>
+                </div>
+                <div class="card" data-search="라이선스 정보 남은 기간 등록 키 변경 배지">
+                    <h3>내 라이선스 확인</h3>
+                    <p>화면 맨 위 오른쪽의 라이선스 표시를 누르면 등록 정보와 남은 기간이 보이고,
+                       <span class="k">등록 키 변경</span>으로 새 키를 넣을 수 있습니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="s-clip" data-sec="예시 영상">
+            <h2>예시 작업 영상</h2>
+            <p class="lede">
+                실제 앱을 조작하면서 찍은 영상입니다. <b>음성 설명이 함께 나오고</b>,
+                화면 위에도 같은 내용이 자막으로 뜹니다.
+                <b>한 번 보시고</b> 아래 설명을 읽으시면 훨씬 빨리 익히실 수 있습니다.
+                영상이 작으면 <b>오른쪽 아래 전체 화면 단추</b>를 누르세요.
+            </p>
+
+            <div class="clip" data-search="눈썹 예시 영상 시연 굵기 길이 간격 각도 색상 꼬리 상단 두께 저장">
+                <div class="fig-title">눈썹 — 디자인 고르기부터 저장까지</div>
+                <div class="clip-body">
+                    <video controls playsinline preload="metadata"
+                           poster="shots/07-brow-quick.webp">
+                        <source src="clips/brow.mp4" type="video/mp4">
+                        영상을 재생할 수 없는 화면입니다.
+                    </video>
+                    <div class="steps">
+                        <p>약 3분 20초. 나오는 순서는 이렇습니다.</p>
+                        <ol>
+                            <li><b>디자인 고르기</b> — 열두 가지 중 아치 · 콤보</li>
+                            <li><b>퀵 화면 설명</b> — 어떤 값이 어디 있는지</li>
+                            <li><b>굵기 · 길이 · 눈썹 간격 · 각도</b></li>
+                            <li><b>색상</b> — 리얼블랙 · 라이트브라운 · 다크브라운</li>
+                            <li><b>눈썹 투명도</b> — 정착 후와 시술 직후</li>
+                            <li><b>메뉴얼로 전환</b> → 꼬리 상단 두께</li>
+                            <li><b>시술 전 · 예상 디자인 · 비교</b> 로 견주어 보기</li>
+                            <li><b>저장</b> — 저장 탭 &gt; 고화질 저장 (PNG)</li>
+                            <li><b>상담 히스토리</b>에 쌓이는 모습</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <div class="clip" data-search="입술 예시 영상 시연 색상 도톰하게 시술선 틴트 투명도 기법 이어서">
+                <div class="fig-title">입술 — 눈썹에 이어서 한 장에 담기</div>
+                <div class="clip-body">
+                    <video controls playsinline preload="metadata"
+                           poster="shots/08-lip-quick.webp">
+                        <source src="clips/lip.mp4" type="video/mp4">
+                        영상을 재생할 수 없는 화면입니다.
+                    </video>
+                    <div class="steps">
+                        <p>약 2분 50초. 눈썹 작업에 이어서 진행합니다.</p>
+                        <ol>
+                            <li><b>사진 · 디자인 변경</b> 으로 나가 입술 고르기</li>
+                            <li><b>밑그림 고르기</b> — 눈썹이 얹힌 사진을 그대로</li>
+                            <li><b>퀵 화면 설명</b> — 색상 여덟 가지와 볼륨 세 줄</li>
+                            <li><b>색상</b> — 클래식레드 · 코랄피치 · 딥버건디 · 로즈핑크</li>
+                            <li><b>도톰하게</b>, 그리고 윗입술 · 아랫입술 따로</li>
+                            <li><b>틴트 투명도</b> — 정착 후 느낌</li>
+                            <li><b>전문 기법</b> — 풀립 · 그라데이션 · 내추럴</li>
+                            <li><b>원본복원</b> — 처음 잡아 준 입술선으로 되돌리기</li>
+                            <li><b>시술선 지우기</b> — 결과만 깔끔하게</li>
+                            <li><b>눈썹과 입술이 한 화면에</b></li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <div class="note" data-search="영상 소리 없음 데이터 전체 화면 크게 보기">
+                <b>소리를 켜고</b> 보시면 설명을 들으면서 따라오실 수 있습니다.
+                조용한 곳이 아니면 소리를 끄셔도 됩니다 — 같은 내용이 화면 위에 자막으로 나옵니다.
+                두 편 합쳐 <b>6MB 안팎</b>이니 가급적 와이파이에서 보시는 편이 좋습니다.
+            </div>
+        </section>
+
+        <section id="s-photo" data-sec="사진 넣기">
+            <h2>사진 넣기</h2>
+            <div class="fig" data-shot="02-photo-empty" data-cap="1단계 — 고객 사진"
+                 data-search="카메라 촬영 앨범 선택 사진 버전 버튼"></div>
+
+            <div class="fig" data-shot="02b-camera" data-cap="카메라로 촬영 — 가이드에 맞추기"
+                 data-search="촬영 가이드 격자 타원 구도 앞뒤 전환 촬영 닫기"></div>
+
+            <div class="tip" data-search="재방문 같은 구도 편집값 상담 빠르게">
+                <span class="h">재방문 손님이라면</span>
+                <b>매번 같은 구도</b>로 찍어두시면 지난번 편집값이 거의 그대로 맞습니다. 상담 시간이 크게 줄어듭니다.
+            </div>
+
+            <div class="fig" data-shot="03-photo-loaded" data-cap="사진을 넣은 뒤 — 인식 상태 확인"
+                 data-search="얼굴 인식 완료 인식 대기 실패 사진 크기 다른 사진"></div>
+        </section>
+
+        <section id="s-mode" data-sec="부위와 방식">
+            <h2>부위와 편집 방식</h2>
+            <div class="fig" data-shot="04-mode" data-cap="2단계 — 시술 부위 · 편집 방식"
+                 data-search="눈썹 입술 퀵 메뉴얼 부위 선택"></div>
+
+            <h3 style="margin-top:6px">두 화면은 이렇게 다릅니다</h3>
+
+            <div class="fig" data-shot="07-brow-quick" data-cap="퀵 — 고객님 앞에서 바로"
+                 data-search="퀵 편집 화면 디자인 넘겨 고르기 대표 색상 빠른 상담"></div>
+
+            <div class="fig" data-shot="06-brow-manual" data-cap="메뉴얼 — 세부까지"
+                 data-search="메뉴얼 편집 화면 탭 형태 색상 좌우 가이드 사진 저장"></div>
+
+            <div class="note" data-search="퀵 메뉴얼 순서 빠르게 디테일 전환 값 유지">
+                <b>퀵으로 빠르게 잡고, 디테일은 메뉴얼에서.</b>
+                고객님 앞에서는 퀵으로 굵기 · 길이 · 색만 바꿔 대략을 먼저 보여드리고,
+                방향이 정해지면 메뉴얼로 넘어가 세부를 맞추시면 됩니다.
+                <b>편집 중에도 조절 창 위의</b> <span class="k">퀵</span> · <span class="k">메뉴얼</span>
+                <b>버튼으로 언제든 오갈 수 있고, 맞춰 둔 값은 그대로 이어집니다.</b>
+            </div>
+
+            <div class="fig" data-shot="04b-standard-lip" data-cap="입술 인식이 안 될 때 켜는 선택"
+                 data-search="입술 인식 안 되는 기기 기본 입술선 표준 입술 선택 어디"></div>
+
+            <div class="warn" data-search="기본 입술선 켜는 자리 순서 퀵 상관없이 입술 인식">
+                <span class="h">켜는 자리를 헷갈리지 마세요</span>
+                <b>2단계 시술 부위 화면</b>에서 <span class="k">입술</span> 과 <span class="k">메뉴얼</span> 을
+                차례로 고르시면 화면 <b>아래쪽에 이 선택이 나타납니다.</b>
+                눈썹을 고르셨거나 퀵을 고르셨을 때는 보이지 않습니다.
+                표준 입술선을 얼굴 위에 올려놓고 끌어서 맞추시면 되고,
+                <b>퀵은 이 설정과 상관없이</b> 언제나 실제 입술을 따라갑니다.
+            </div>
+        </section>
+
+        <section id="s-brow" data-sec="눈썹">
+            <h2>눈썹</h2>
+            <div class="fig" data-shot="05-brow-designs" data-cap="3단계 — 눈썹 디자인 고르기"
+                 data-search="디자인 아치 세미아치 일자 내추럴 그라데이션 콤보 남성 내 디자인 등록"></div>
+
+            <div class="tip" data-search="내 디자인 등록 중요 시그니처 나만의 디자인 PNG">
+                <span class="h">원장님만의 디자인을 쓰실 수 있습니다</span>
+                앱에 들어 있는 <b>12가지 디자인 말고도</b>, 원장님이 직접 그리신 눈썹을
+                <b>PNG 파일로 등록해서 그대로 쓰실 수 있습니다.</b>
+                한 번 등록해 두면 목록에 남아 다음 손님부터 바로 고르실 수 있습니다 —
+                <b>앱을 지우지 않는 한 사라지지 않고, 전체 초기화를 눌러도 남습니다.</b>
+            </div>
+
+            <div class="fig" data-shot="11-design-add" data-cap="내 디자인 등록 — 창이 뜬 모습"
+                 data-search="내 디자인 등록 창 미리보기 이름 좌우 뒤집기 등록 버튼"></div>
+
+            <div class="card" data-search="내 디자인 등록 방법 순서 PNG 투명 배경 왼쪽 눈썹">
+                <h3>등록하는 순서</h3>
+                <ul class="plain">
+                    <li><b>1.</b> 눈썹 디자인 목록에서 <b>맨 아래까지 내려</b>
+                        <span class="k">＋ 내 디자인 등록</span> 카드를 누릅니다.</li>
+                    <li><b>2.</b> 폰에서 <b>PNG 파일</b>을 고릅니다. 사진첩이나 파일 앱 어디서든 됩니다.</li>
+                    <li><b>3.</b> 창이 뜨면 미리보기로 <b>모양이 맞는지</b> 확인합니다.</li>
+                    <li><b>4.</b> <b>디자인 이름</b>을 적습니다. 나중에 목록에서 이 이름으로 찾습니다.</li>
+                    <li><b>5.</b> 방향이 반대면 <span class="k">좌우 뒤집기</span>를 누릅니다.</li>
+                    <li><b>6.</b> <span class="k">등록</span> — 목록 맨 뒤에 들어가고 바로 쓰실 수 있습니다.</li>
+                </ul>
+            </div>
+
+            <div class="card" data-search="디자인 파일 조건 투명 배경 왼쪽 한 쪽 색 농담 크기">
+                <h3>어떤 그림을 올려야 하나</h3>
+                <div class="chips">
+                    <div class="chiprow"><span class="c">투명 배경 PNG</span>
+                        <span><b>배경이 비어 있어야</b> 합니다. 흰 배경으로 저장하면 얼굴 위에 <b>흰 사각형</b>이 얹힙니다.
+                              JPG 는 투명을 담지 못하므로 안 됩니다.</span></div>
+                    <div class="chiprow"><span class="c">왼쪽 눈썹 한 쪽만</span>
+                        <span>오른쪽은 앱이 <b>자동으로 좌우 반전해서</b> 만듭니다. 두 쪽을 다 그리실 필요가 없습니다.</span></div>
+                    <div class="chiprow"><span class="c">모양과 농담만</span>
+                        <span>색은 편집 화면에서 다시 입힙니다. <b>검은색·회색으로 결만</b> 그려두시면 됩니다.</span></div>
+                    <div class="chiprow"><span class="c">가로로 누운 모양</span>
+                        <span>눈썹이 <b>가로로 길게</b> 놓인 그림이어야 합니다. 앱 기본 디자인과 같은 모양새로 그려주세요.</span></div>
+                </div>
+                <div class="warn">
+                    <span class="h">잘 안 되는 경우</span>
+                    얼굴 위에 <b>네모난 배경이 같이 보이면</b> 투명 PNG 가 아닙니다.
+                    그림판 대신 투명 배경을 지원하는 프로그램에서 <b>PNG 로 내보내기</b> 하셔야 합니다.
+                </div>
+            </div>
+
+            <div class="card" data-search="눈썹 퀵 조절 굵기 길이 간격 위아래 각도 기존 눈썹 진하기">
+                <h3>퀵에 올려둔 조절</h3>
+                <p>현장에서 실제로 만지는 값만 올렸습니다. 나머지는 메뉴얼에 그대로 있습니다.</p>
+                <div class="pills">
+                    <span>🔅 기존 눈썹 진하기</span><span>↕️ 굵기</span><span>↔️ 길이</span><span>↔️ 눈썹 간격</span>
+                    <span>↕️ 위아래</span><span>↗️ 각도</span><span>👁️ 눈썹 투명도</span>
+                </div>
+            </div>
+
+            <div class="tip" data-search="기존 눈썹 진하기 원래 눈썹 진한 고객 흐리게 지우기 피부 투명">
+                <span class="h">원래 눈썹이 진한 고객님은 — 🔅 기존 눈썹 진하기</span>
+                원래 눈썹이 진하면 디자인을 얹어도 <b>묻혀서 차이가 안 보입니다.</b>
+                이럴 때 <span class="k">🔅 기존 눈썹 진하기</span>를 낮추세요.
+                <b>100 은 사진 그대로, 0 은 원래 눈썹 자리에 피부만 보입니다.</b>
+                퀵에서는 '모양 빠른 조절' 맨 위에, 메뉴얼에서는 📐 형태 탭 맨 아래에 있습니다.
+                눈썹이 성긴 <b>내추럴</b> 디자인보다 <b>그라데이션 · 콤보</b>가 더 또렷하게 보입니다.
+            </div>
+
+            <div class="fig" data-shot="07c-brow-natfade" data-cap="기존 눈썹 진하기를 0 으로 — 원래 눈썹이 흐려짐"
+                 data-search="기존 눈썹 진하기 원래 눈썹 흐리게 진한 눈썹 피부"></div>
+
+            <div class="card" data-search="눈썹 색상 리얼블랙 내추럴블랙 다크브라운 내추럴브라운 애쉬브라운 라이트브라운 사용자 선택">
+                <h3>눈썹 색상 7종</h3>
+                <div class="pills">
+                    <span>리얼블랙</span><span>내추럴블랙</span><span>다크브라운</span><span>내추럴브라운</span>
+                    <span>애쉬브라운</span><span>라이트브라운</span><span>사용자 선택</span>
+                </div>
+                <p>퀵에는 자주 쓰는 <b>리얼블랙 · 다크브라운 · 내추럴브라운 · 라이트브라운</b> 넷만 있습니다.</p>
+            </div>
+
+            <div class="fig" data-shot="12-brow-color" data-cap="메뉴얼 🎨 색상 탭 — 사용자 선택"
+                 data-search="색상 탭 프리셋 사용자 선택 임의 색상 HEX RGB 색소"></div>
+
+            <div class="card" data-search="사용자 선택 임의 색상 쓰는 법 색소 HEX RGB 기록">
+                <h3>사용자 선택 — 쓰시는 색소에 맞추기</h3>
+                <ul class="plain">
+                    <li><b>1.</b> 메뉴얼 &gt; <span class="k">🎨 색상</span> 탭으로 갑니다.</li>
+                    <li><b>2.</b> <b>색상 프리셋</b> 목록 맨 아래 <span class="k">사용자 선택</span>을 고릅니다.</li>
+                    <li><b>3.</b> 오른쪽 위 <span class="k">🎨 임의 색상 선택</span>을 누르면
+                        <b>색을 직접 집는 판</b>이 열립니다.</li>
+                    <li><b>4.</b> 고른 색은 아래에 <b>HEX 값과 RGB 값</b>으로 표시됩니다.</li>
+                </ul>
+                <div class="tip">
+                    <span class="h">한 번 맞춰두시면</span>
+                    표시된 <b>HEX 값(예 #5C4033)을 적어두세요.</b> 쓰시는 색소마다 값을 정리해두시면
+                    다음부터는 그 값으로 바로 맞추실 수 있습니다.
+                </div>
+            </div>
+        </section>
+
+        <section id="s-lip" data-sec="입술">
+            <h2>입술</h2>
+            <div class="fig" data-shot="08-lip-quick" data-cap="입술 편집 — 퀵"
+                 data-search="입술 퀵 시술선 틴트 채움 재추출 원본복원 색상 로즈핑크 클래식레드"></div>
+
+            <div class="card" data-search="입술 볼륨 도톰하게 윗입술 볼륨 아랫입술 볼륨 입꼬리 오버립">
+                <h3>입술 볼륨 세 줄</h3>
+                <div class="chips">
+                    <div class="chiprow"><span class="c">💋 도톰하게</span><span>윗입술과 아랫입술을 <b>한 번에</b> 밉니다.</span></div>
+                    <div class="chiprow"><span class="c">🔺 윗입술 볼륨</span><span>윗입술만.</span></div>
+                    <div class="chiprow"><span class="c">🔻 아랫입술 볼륨</span><span>아랫입술만.</span></div>
+                </div>
+                <div class="note">셋은 같은 값을 움직이므로 <b>하나를 만지면 나머지 숫자도 따라 맞춰집니다.</b>
+                    위아래가 다를 때 <span class="k">도톰하게</span>는 큰 쪽을 보여줍니다.</div>
+            </div>
+
+            <div class="fig" data-shot="09-lip-manual" data-cap="입술 편집 — 메뉴얼"
+                 data-search="입술 메뉴얼 윗입술 아랫입술 색상 저장 탭"></div>
+
+            <div class="card" data-search="입술 색상 8종 기법 내추럴 풀립 그라데이션 수채화 벨벳 MLBB">
+                <h3>색상 8종 · 기법 6종</h3>
+                <div class="pills">
+                    <span>로즈핑크</span><span>클래식레드</span><span>코랄피치</span><span>딥버건디</span>
+                    <span>누드베이지</span><span>체리핑크</span><span>플럼베리</span><span>베이비핑크</span>
+                </div>
+                <div class="pills" style="margin-top:4px">
+                    <span>🌿 내추럴</span><span>💄 풀립</span><span>✨ 그라데이션</span>
+                    <span>💧 수채화</span><span>🎀 벨벳</span><span>🌸 MLBB</span>
+                </div>
+                <p>기법은 메뉴얼 <span class="k">🎨 색상</span> 탭 맨 위에 있습니다. 고르면 발색과 경계 느낌이 한 번에 바뀝니다.
+                   <span class="k">커스텀 피커</span>로 원하는 색을 직접 집으실 수도 있습니다.</p>
+            </div>
+        </section>
+
+        <section id="s-dials" data-sec="조절바 사전">
+            <h2>조절바 사전</h2>
+            <p class="lede">메뉴얼 화면의 조절바입니다. 위 검색창에 이름을 적으시면 바로 찾아집니다.</p>
+
+            <div class="card">
+                <div class="gh">눈썹 · 📐 형태</div>
+                <dl class="dial" data-search="전체 크기 눈썹"><dt>📐 전체 크기</dt><dd>눈썹 전체를 키우거나 줄입니다.</dd></dl>
+                <dl class="dial" data-search="눈썹 기장 가로 길이"><dt>↔️ 눈썹 기장</dt><dd>앞머리에서 꼬리까지의 길이.</dd></dl>
+                <dl class="dial" data-search="세로 두께 굵기"><dt>↕️ 세로 두께</dt><dd>위아래 굵기.</dd></dl>
+                <dl class="dial" data-search="꼬리 높이 기울기 각도"><dt>↗️ 꼬리 높이</dt><dd>눈썹 전체를 기울입니다. 꼬리가 올라가거나 내려갑니다.</dd></dl>
+                <dl class="dial" data-search="눈썹 간격 미간"><dt>↔️ 눈썹 간격</dt><dd>양 눈썹 사이를 벌리거나 좁힙니다.</dd></dl>
+                <dl class="dial" data-search="위아래 위치"><dt>↕️ 위아래 위치</dt><dd>눈썹 전체를 올리거나 내립니다.</dd></dl>
+                <dl class="dial" data-search="눈썹 투명도 진하기 정착"><dt>👁️ 눈썹 투명도</dt><dd>색의 진하기. 시술 직후와 정착 후를 보여드릴 때 씁니다.</dd></dl>
+                <dl class="dial" data-search="꼬리 상단 두께 눈썹산 볼륨"><dt>🌙 꼬리 상단 두께</dt><dd>꼬리 끝에서 눈썹산까지의 윗선에 볼륨을 넣습니다. <b>눈썹산 위치는 그대로 두고</b> 그 사이만 도톰해집니다.</dd></dl>
+            </div>
+
+            <div class="card">
+                <div class="gh">눈썹 · ⚖️ 좌우 · 📏 가이드 · 🖼️ 사진</div>
+                <dl class="dial" data-search="좌측 우측 추가 회전 좌우 비대칭"><dt>👈 좌측 / 👉 우측 추가 회전</dt><dd>한쪽 눈썹만 더 기울입니다. 얼굴 좌우가 다를 때 마지막으로 다듬는 자리.</dd></dl>
+                <dl class="dial" data-search="가이드 선 굵기 투명도"><dt>〰️ 선 굵기 · 👁️ 선 투명도</dt><dd>가이드선을 얼마나 뚜렷하게 볼지.</dd></dl>
+                <dl class="dial" data-search="가이드 꼬리선 눈썹산 앞머리 3등분"><dt>① 꼬리선 · ② 눈썹산 · ③ 앞머리</dt><dd>세로 가이드 셋. 좌우 따로 있습니다.</dd></dl>
+                <dl class="dial" data-search="가이드 상단선 중심선 하단선"><dt>① 상단선 · ② 중심선 · ③ 하단선</dt><dd>가로 가이드 셋.</dd></dl>
+                <dl class="dial" data-search="명도 밝기 대비 채도 사진 보정"><dt>☀️ 명도 · 🌓 대비 · 🎨 채도</dt><dd>사진만 보정합니다. <b>눈썹 모양은 바뀌지 않습니다.</b></dd></dl>
+                <dl class="dial" data-search="사진 줌 확대 가로 이동 세로 이동"><dt>🔍 줌 · ↔️ 가로 · ↕️ 세로 이동</dt><dd>사진을 당겨 보고 원하는 곳으로 옮깁니다.</dd></dl>
+            </div>
+
+            <div class="card">
+                <div class="gh">입술 · 💖 윗입술</div>
+                <dl class="dial" data-search="전체 상하 좌우 입술 위치"><dt>📍 전체 상하 · 📍 전체 좌우</dt><dd>입술 전체를 통째로 옮깁니다.</dd></dl>
+                <dl class="dial" data-search="입술 전체 가로 길이감"><dt>↔️ 입술 전체 가로 길이감</dt><dd>입술 전체의 가로 폭.</dd></dl>
+                <dl class="dial" data-search="윗입술 상하 좌우"><dt>📍 윗입술 상하 · 좌우</dt><dd>윗입술만 옮깁니다.</dd></dl>
+                <dl class="dial" data-search="윗입술 가로 길이감 전체 두께"><dt>↔️ 가로 길이감 · ↕️ 전체 두께</dt><dd>윗입술의 폭과 도톰한 정도.</dd></dl>
+                <dl class="dial" data-search="입꼬리 오버립"><dt>↗️ 입꼬리 오버립</dt><dd>입꼬리 쪽 바깥선을 밀어냅니다.</dd></dl>
+                <dl class="dial" data-search="인중 라운드 골 깊이 폭 큐피드"><dt>🌙 인중 라운드 · 🔻 골 깊이 · ↔️ 인중 폭</dt><dd>인중(큐피드 보우) 모양을 잡습니다.</dd></dl>
+                <dl class="dial" data-search="하단 전체 자연스런 라운드"><dt>🌙 하단 전체 자연스런 라운드</dt><dd>윗입술 아랫선의 둥근 느낌.</dd></dl>
+                <dl class="dial" data-search="좌측 우측 입꼬리 뾰족 볼륨"><dt>😊 좌우 입꼬리 · 📐 입꼬리 뾰족 · ◀️▶️ 좌우 볼륨</dt><dd>입꼬리는 위·아래가 만나는 <b>한 점</b>이라 뾰족 조절은 양쪽에 함께 적용됩니다.</dd></dl>
+            </div>
+
+            <div class="card">
+                <div class="gh">입술 · 🌓 아랫입술 · 🎨 색상</div>
+                <dl class="dial" data-search="아랫입술 상하 좌우 가로 길이감 두께"><dt>📍 상하 · 좌우 · ↔️ 가로 · ↕️ 두께</dt><dd>아랫입술의 자리와 크기.</dd></dl>
+                <dl class="dial" data-search="상부 경계선 위치"><dt>📍 상부 경계선 위치</dt><dd>윗입술과 만나는 선의 높이.</dd></dl>
+                <dl class="dial" data-search="하부 외곽 오버립 도톰"><dt>🔻 하부 외곽 오버립</dt><dd>아랫입술 바깥선을 아래로 밀어냅니다. 도톰해집니다.</dd></dl>
+                <dl class="dial" data-search="아랫입술 좌우 입꼬리 볼륨"><dt>😊 좌우 입꼬리 · ◀️▶️ 좌우 볼륨</dt><dd>좌우를 따로 맞춥니다.</dd></dl>
+                <dl class="dial" data-search="발색 농도"><dt>🎨 발색 농도</dt><dd>색이 얼마나 진하게 올라오는지.</dd></dl>
+                <dl class="dial" data-search="틴트 투명도 정착"><dt>👁️ 틴트 투명도</dt><dd>얼마나 비쳐 보이는지. 정착 후를 보여드릴 때 낮춥니다.</dd></dl>
+                <dl class="dial" data-search="경계선 흐림 그라데이션"><dt>🌫️ 경계선 흐림</dt><dd>가장자리를 부드럽게 풀어줍니다.</dd></dl>
+            </div>
+        </section>
+
+        <section id="s-save" data-sec="저장과 되돌리기">
+            <h2>저장과 되돌리기</h2>
+
+            <div class="fig" data-shot="13-save" data-cap="메뉴얼 💾 저장 탭 — 결과 저장하기"
+                 data-search="저장 탭 결과 저장 사진첩"></div>
+
+            <div class="fig" data-shot="13b-history" data-cap="같은 탭 아래쪽 — 상담 히스토리"
+                 data-search="히스토리 개수 저장됨 전체 비우기 카드 쌓기"></div>
+
+            <div class="card" data-search="저장 순서 언제 저장 여러 디자인 골라 보여주기">
+                <h3>언제 저장하시면 되나</h3>
+                <p>조절이 <b>마음에 드는 모양이 나올 때마다</b> 저장해 두세요.
+                   한 손님에게 <b>여러 디자인을 저장해 두고</b> 나란히 보여드리면 고르시기가 훨씬 수월합니다.</p>
+                <ul class="plain">
+                    <li><b>1.</b> 조절을 마치고 <span class="k">메뉴얼</span> &gt; <span class="k">💾 저장</span> 탭으로 갑니다.</li>
+                    <li><b>2.</b> <span class="k">📥 변형된 예상 디자인 고화질 저장 (PNG)</span> —
+                        지금 화면 그대로 <b>폰 사진첩</b>에 들어갑니다. 평소에 쓰시는 저장은 이것입니다.</li>
+                    <li><b>3.</b> 아래 <b>히스토리</b>에 카드가 하나 쌓입니다.</li>
+                    <li><b>4.</b> 다른 디자인으로 바꿔 다시 저장하면 카드가 또 쌓입니다.</li>
+                </ul>
+                <div class="note">
+                    <b>한 장에 나란히 담고 싶으시면</b>
+                    같은 탭의 <span class="k">🖼️ Before / After 2분할 비교 저장 (PNG)</span> 을 쓰세요.
+                    시술 전과 예상 디자인이 <b>한 장에</b> 들어가 카톡으로 보내드리기 좋습니다.
+                </div>
+
+                <div class="tip">
+                    <span class="h">카드를 누르면</span>
+                    저장한 그림이 <b>크게 열립니다.</b> 거기서 다시 내려받거나 새 창으로 크게 보실 수 있어,
+                    고객님께 폰을 건네 보여드릴 때 쓰기 좋습니다.
+                </div>
+            </div>
+
+            <div class="fig" data-shot="14-compare" data-cap="비교 — 시술 전과 나란히"
+                 data-search="비교 시술 전 예상 디자인 가운데 선 끌어서 나눠 보기"></div>
+
+            <div class="card" data-search="비교 쓰는 법 상담 고객 직접 끌어보기">
+                <h3>비교를 상담에 쓰는 법</h3>
+                <p>사진 위쪽 세 버튼 — <span class="k">시술 전</span> · <span class="k">예상 디자인</span> ·
+                   <span class="k">비교</span> — 으로 화면을 바꿉니다.</p>
+                <div class="chips">
+                    <div class="chiprow"><span class="c">시술 전</span><span>손대지 않은 원본 사진.</span></div>
+                    <div class="chiprow"><span class="c">예상 디자인</span><span>지금 편집 중인 결과.</span></div>
+                    <div class="chiprow"><span class="c">비교</span><span>한 화면에서 <b>가운데 선을 끌어</b> 좌우로 나눠 봅니다.</span></div>
+                </div>
+                <div class="tip">
+                    <span class="h">고객님께 직접 끌어보시게 하세요</span>
+                    가운데 선을 <b>손가락으로 좌우로 끌면</b> 왼쪽은 시술 전, 오른쪽은 예상 디자인이 됩니다.
+                    말로 설명하는 것보다 한 번 끌어보시게 하는 편이 훨씬 잘 와닿습니다.
+                </div>
+            </div>
+
+            <h3 style="margin-top:8px">눈썹과 입술을 한 장에 — 순서는 상관없습니다</h3>
+
+            <div class="tip" data-search="눈썹 입술 둘 다 한 장 이어서 편집 순서 상관없이">
+                <span class="h">먼저 한 쪽을 끝내고, 이어서 다른 쪽</span>
+                눈썹을 먼저 하셔도 되고 입술을 먼저 하셔도 됩니다.
+                한 쪽을 마친 뒤 <b>사진 화면으로 돌아가</b> 다른 부위를 고르면,
+                <b>앞 작업이 얹힌 사진 위에서</b> 이어서 편집할 수 있습니다.
+                그러면 <b>눈썹과 입술이 한 화면에 같이</b> 보입니다.
+            </div>
+
+            <div class="card" data-search="이어서 편집 순서 사진 디자인 변경 부위 변경 나가기">
+                <h3>이어서 편집하는 순서</h3>
+                <ul class="plain">
+                    <li><b>1.</b> 먼저 한 쪽(예: 눈썹)을 <b>마음에 들게 맞춥니다.</b></li>
+                    <li><b>2.</b> 편집 화면 <b>맨 위</b>의
+                        <span class="k">사진 · 디자인 변경</span>
+                        <span style="color:var(--ink-3)">(입술일 때는 <span class="k">사진 · 부위 변경</span>)</span>
+                        을 누릅니다.</li>
+                    <li><b>3.</b> <b>시술 부위</b>에서 다른 쪽(예: 입술)을 고릅니다.</li>
+                    <li><b>4.</b> <b>밑그림 고르는 화면</b>이 나옵니다 — 아래 그림을 보세요.</li>
+                    <li><b>5.</b> 앞 작업이 얹힌 사진을 고르고
+                        <span class="k">✏️ 이 사진으로 편집하기</span>.</li>
+                </ul>
+                <div class="warn">
+                    <span class="h">나가는 버튼을 헷갈리지 마세요</span>
+                    반드시 <b>편집 화면 맨 위</b>의 <span class="k">사진 · 디자인 변경</span> 으로 나가셔야
+                    앞 작업이 밑그림으로 남습니다.
+                </div>
+            </div>
+
+            <div class="fig" data-shot="15-carry" data-cap="밑그림 고르기 — 어느 사진 위에서 이어갈지"
+                 data-search="밑그림 고르기 이어서 편집 맨얼굴 눈썹 작업 이 사진으로 편집하기"></div>
+
+            <div class="fig" data-shot="16-both" data-cap="눈썹과 입술이 한 화면에"
+                 data-search="눈썹 입술 한 화면 둘 다 결과 저장"></div>
+
+            <div class="card" data-search="맨얼굴 고르기 따로 보여주기 밑그림 6장">
+                <h3>밑그림을 고를 때</h3>
+                <div class="chips">
+                    <div class="chiprow"><span class="c">앞 작업 사진</span>
+                        <span><b>둘 다 보여드릴 때.</b> 눈썹이 얹힌 사진 위에 입술을 올립니다.</span></div>
+                    <div class="chiprow"><span class="c">맨얼굴</span>
+                        <span><b>따로 보여드릴 때.</b> 손대지 않은 원본에서 새로 시작합니다.</span></div>
+                </div>
+                <p>앞 작업은 <b>최대 6장</b>까지 남습니다. 여러 눈썹 디자인을 해보셨다면
+                   그중 <b>마음에 드는 것 위에</b> 입술을 올리실 수 있습니다.</p>
+                <div class="tip">
+                    <span class="h">다 맞추셨으면</span>
+                    <span class="k">메뉴얼</span> &gt; <span class="k">💾 저장</span> 탭에서 저장하시면
+                    <b>눈썹과 입술이 함께 담긴 한 장</b>이 사진첩에 들어갑니다.
+                </div>
+            </div>
+
+            <div class="card chips" data-search="되돌리기 다시실행 조절 초기화 원본복원 전체 초기화 지우기">
+                <h3>되돌리는 단추 네 가지 — 지워지는 범위가 다릅니다</h3>
+                <div class="chiprow"><span class="c">되돌리기 / 다시실행</span><span>방금 한 조작 한 단계씩.</span></div>
+                <div class="chiprow"><span class="c">↺ 조절 초기화</span><span><b>눈썹</b> — 조절바 값만 처음으로.</span></div>
+                <div class="chiprow"><span class="c">↺ 원본복원</span><span><b>입술</b> — 인식 직후 선으로.</span></div>
+                <div class="chiprow"><span class="c">전체 초기화</span><span>처음 상태로. <b>저장한 결과물과 편집이 모두 지워집니다.</b></span></div>
+            </div>
+
+            <div class="tip" data-search="전체 초기화 남는 것 내 디자인 라이선스 손님">
+                <span class="h">전체 초기화를 눌러도 남는 것</span>
+                <b>등록해 두신 내 디자인과 라이선스는 지워지지 않습니다.</b>
+                손님이 바뀌어 처음부터 시작하실 때 앱을 껐다 켜지 말고 이 버튼을 쓰세요.
+            </div>
+        </section>
+
+        <section id="s-trouble" data-sec="문제가 생기면">
+            <h2>문제가 생기면</h2>
+
+            <div class="fig" data-shot="10-version" data-cap="버전 · 기기 진단"
+                 data-search="버전 새 버전 확인 설치 기기 진단 캡처"></div>
+
+            <details class="qa" data-search="눈썹이 안 보임 입술이 안 보임 아무것도 안 그려짐 진단 캡처">
+                <summary>눈썹이나 입술이 사진 위에 보이지 않습니다</summary>
+                <div class="qa-body">
+                    <p>기기에 따라 얼굴 인식이 이상한 값을 내놓는 경우가 있습니다. 위 그림의
+                       <b>기기 진단</b>을 펼치고 <span class="k">다시 진단</span>을 누른 뒤,
+                       나온 내용을 <b>그대로 캡처해서 판매처로 보내주세요.</b></p>
+                    <p>같은 안드로이드라도 기기마다 그래픽 처리가 다릅니다. 이 화면이 어느 단계에서 막혔는지
+                       알려주기 때문에, 보내주시면 그 기종에 맞춰 고칠 수 있습니다.</p>
+                </div>
+            </details>
+
+            <details class="qa" data-search="입술선 엉뚱 재추출 기본 입술선">
+                <summary>입술선이 엉뚱한 곳에 잡힙니다</summary>
+                <div class="qa-body">
+                    <p>칩 줄의 <span class="k">🔄 재추출</span>을 눌러 다시 인식시켜 보세요.
+                       그래도 안 되면 <b>시술 부위</b> 화면에서 <span class="k">기본 입술선으로 시작</span>을 켜고
+                       표준 입술선을 끌어서 맞추시면 됩니다.</p>
+                </div>
+            </details>
+
+            <details class="qa" data-search="얼굴 인식 실패 사진 다시 찍기 밝기">
+                <summary>얼굴 인식이 자꾸 실패합니다</summary>
+                <div class="qa-body">
+                    <p><b>정면 · 밝은 곳 · 눈썹을 가리지 않게</b> — 이 세 가지만 지키면 대부분 잡힙니다.
+                       촬영 화면의 격자와 타원에 맞춰 찍으시면 실패가 크게 줄어듭니다.</p>
+                </div>
+            </details>
+
+            <details class="qa" data-search="업데이트 설치 안 됨 출처를 알 수 없는 앱 허용">
+                <summary>새 버전을 받았는데 설치가 안 됩니다</summary>
+                <div class="qa-body">
+                    <p>안드로이드가 <b>“출처를 알 수 없는 앱 설치”</b>를 막고 있는 것입니다.
+                       앱이 그 설정 화면을 열어드리니 PMUS에 대해 <b>허용</b>으로 바꿔주세요.
+                       한 번만 하시면 다음부터는 바로 설치됩니다.</p>
+                </div>
+            </details>
+
+            <details class="qa" data-search="느려짐 버벅임 메모리 사진 많이 저장">
+                <summary>쓰다 보니 느려집니다</summary>
+                <div class="qa-body">
+                    <p>저장한 결과물이 쌓이면 그것만으로 폰의 메모리를 씁니다.
+                       <span class="k">전체 초기화</span>로 비워주세요. 앱을 껐다 켜실 필요가 없습니다.</p>
+                </div>
+            </details>
+
+            <details class="qa" data-search="폰 교체 기기 변경 라이선스 이전">
+                <summary>폰을 바꿨습니다</summary>
+                <div class="qa-body">
+                    <p>라이선스는 <b>기기마다</b> 발급됩니다. 새 폰에서 앱을 열고 <b>기기 코드</b>를 복사해
+                       판매처로 보내주시면 새 등록 키를 받으실 수 있습니다.</p>
+                </div>
+            </details>
+
+            <details class="qa" data-search="아이폰 아이패드 PC 맥 설치">
+                <summary>아이폰에도 깔 수 있나요</summary>
+                <div class="qa-body">
+                    <p>현재 PMUS 앱은 <b>안드로이드 전용</b>입니다. 아이폰 판은 준비 중입니다.
+                       이 메뉴얼은 아이폰·아이패드·PC·맥 어디서나 열립니다.</p>
+                </div>
+            </details>
+        </section>
+
+        <div id="noresult" hidden>찾으시는 내용이 없습니다. 다른 낱말로 찾아보세요.</div>
+
+        <footer id="foot"></footer>
+    </main>
+</div>
+
+<script>
+/* 화면 그림과 지시선 자리 — tools/shoot-manual.mjs 가 앱에서 직접 재어 넣는다 */
+const SHOT_DATA = /*__SHOTS__*/{"build":"77","device":"Galaxy S24 Ultra 412×915","shots":[{"name":"01-license","w":824,"h":1830,"marks":[{"label":"기기 코드","note":"이 코드를 판매처로 보내면 등록 키를 받습니다. 폰마다 다릅니다.","x":209,"y":819,"w":386,"h":38},{"label":"복사","note":"눌러서 복사한 뒤 카톡으로 붙여넣어 보내세요.","x":615,"y":803,"w":105,"h":70},{"label":"등록 키 넣는 칸","note":"받은 키를 그대로 붙여넣습니다.","x":74,"y":985,"w":676,"h":201},{"label":"등록하기","note":"누르면 바로 쓸 수 있습니다.","x":74,"y":1222,"w":676,"h":90}]},{"name":"02-photo-empty","w":824,"h":1830,"marks":[{"label":"버전","note":"새 버전 확인과 기기 진단이 여기 있습니다.","x":608,"y":35,"w":88,"h":54},{"label":"카메라로 촬영","note":"격자와 얼굴 타원이 있는 촬영 화면이 열립니다.","x":78,"y":552,"w":668,"h":90},{"label":"앨범에서 선택","note":"이미 찍어 둔 사진을 고릅니다.","x":78,"y":660,"w":668,"h":90}]},{"name":"02b-camera","w":824,"h":1830,"marks":[{"label":"격자와 얼굴 타원","note":"코를 가운데 세로선에 맞추고, 얼굴은 타원 안에 꽉 차게 넣습니다.","x":24,"y":335,"w":776,"h":970},{"label":"앞/뒤 전환","note":"전면 카메라와 후면 카메라를 바꿉니다.","x":535,"y":20,"w":153,"h":70},{"label":"촬영","note":"누르면 바로 다음 단계로 넘어갑니다.","x":344,"y":1658,"w":136,"h":136},{"label":"닫기","note":"찍지 않고 나갑니다.","x":705,"y":20,"w":95,"h":70}]},{"name":"03-photo-loaded","w":824,"h":1830,"marks":[{"label":"얼굴 인식 완료","note":"초록색으로 바뀌면 준비 끝입니다. 빨간색이면 사진을 다시 찍어 주세요.","x":584,"y":802,"w":174,"h":48},{"label":"사진 크기","note":"너무 작으면 결과가 거칠어집니다.","x":66,"y":811,"w":136,"h":30},{"label":"다른 사진 선택","note":"마음에 안 들면 여기서 바꿉니다.","x":62,"y":874,"w":207,"h":70}]},{"name":"04-mode","w":824,"h":1830,"marks":[{"label":"눈썹","note":"눈썹 시술을 볼 때.","x":50,"y":500,"w":354,"h":78},{"label":"입술","note":"입술 시술을 볼 때. 눈썹을 먼저 하고 넘어와도 사진은 그대로 쓰입니다.","x":420,"y":500,"w":354,"h":78},{"label":"퀵","note":"고객님 앞에서 바로 조절할 때. 자주 쓰는 값만 크게 나옵니다.","x":36,"y":612,"w":368,"h":115},{"label":"메뉴얼","note":"디자인을 고르고 세부까지 맞출 때.","x":420,"y":612,"w":368,"h":115}]},{"name":"05-brow-designs","w":824,"h":1830,"marks":[{"label":"디자인 12종","note":"아치·세미아치·일자 × 내추럴·그라데이션·콤보, 그리고 남성용 3종. 누르면 바로 편집 화면으로 넘어갑니다.","x":36,"y":975,"w":752,"h":818}]},{"name":"11-design-add","w":824,"h":1830,"marks":[{"label":"올린 그림 미리보기","note":"배경이 투명한 PNG 여야 합니다. 흰 배경이면 얼굴 위에 흰 사각형이 얹힙니다.","x":250,"y":623,"w":325,"h":38},{"label":"디자인 이름","note":"나중에 목록에서 알아보실 이름. 예) 원장님 시그니처 아치","x":86,"y":1059,"w":652,"h":89},{"label":"좌우 뒤집기","note":"올린 그림이 오른쪽 눈썹이면 눌러서 왼쪽으로 뒤집습니다.","x":86,"y":1192,"w":652,"h":70},{"label":"등록","note":"누르면 디자인 목록 맨 뒤에 들어가고 바로 쓰실 수 있습니다.","x":420,"y":1278,"w":318,"h":70}]},{"name":"06-brow-manual","w":824,"h":1830,"marks":[{"label":"시술 전 · 예상 디자인 · 비교","note":"고객님께 보여드릴 때 이 셋을 오갑니다. 비교를 쓰시려면 결과를 먼저 저장하셔야 합니다 — 메뉴얼 > 💾 저장 탭 > 결과 저장.","x":24,"y":100,"w":104,"h":58},{"label":"전체 초기화","note":"처음 상태로. 저장한 결과물까지 지워지지만 내 디자인과 라이선스는 남습니다.","x":660,"y":95,"w":147,"h":68},{"label":"이동 대상 칩","note":"함께 · 자동 · 왼쪽 · 오른쪽 — 어느 눈썹을 움직일지 고릅니다. 맨 끝은 조절 초기화.","x":0,"y":182,"w":824,"h":93},{"label":"메뉴얼 탭 6개","note":"형태 · 색상 · 좌우 · 가이드 · 사진 · 저장.","x":0,"y":1338,"w":824,"h":133}]},{"name":"12-brow-color","w":824,"h":1830,"marks":[{"label":"색상 프리셋","note":"기본 여섯 가지와 맨 아래 사용자 선택이 있습니다.","x":54,"y":1710,"w":297,"h":84},{"label":"임의 색상 선택","note":"누르면 색을 직접 집는 판이 열립니다. 쓰시는 색소에 맞춰 정확히 맞추실 때.","x":449,"y":1573,"w":249,"h":69},{"label":"지금 색과 값","note":"고른 색과 그 값(HEX·RGB)이 바로 보입니다. 같은 색을 다음에 다시 쓰실 때 적어두세요.","x":397,"y":1692,"w":72,"h":72}]},{"name":"13-save","w":824,"h":1830,"marks":[{"label":"💾 저장 탭","note":"메뉴얼 탭 맨 오른쪽입니다. 저장과 히스토리가 모두 여기 있습니다.","x":687,"y":1346,"w":121,"h":107},{"label":"변형된 예상 디자인 고화질 저장 (PNG)","note":"지금 화면 그대로 폰 사진첩에 들어갑니다. 평소에 쓰시는 저장은 이것입니다.","x":24,"y":1667,"w":776,"h":86},{"label":"Before / After 2분할 비교 저장 (PNG)","note":"시술 전과 예상 디자인을 한 장에 나란히 담아 저장합니다. 고객님께 보내드릴 때 좋습니다.","x":24,"y":1777,"w":776,"h":86}]},{"name":"13b-history","w":824,"h":1830,"marks":[{"label":"몇 장 저장했는지","note":"이번 상담에서 저장한 장수입니다. 여러 디자인을 저장해 두고 골라 보여드리세요.","x":442,"y":1535,"w":130,"h":84},{"label":"전체 비우기","note":"손님이 바뀔 때 히스토리만 비웁니다. 사진첩에 저장한 것은 그대로 남습니다.","x":572,"y":1523,"w":176,"h":108}]},{"name":"14-compare","w":824,"h":1830,"marks":[{"label":"시술 전 · 예상 디자인 · 비교","note":"고객님께 보여드릴 때 이 셋을 오갑니다. 비교를 누르면 한 화면에서 나눠 보입니다.","x":16,"y":92,"w":357,"h":74},{"label":"가운데 선을 끌어서","note":"선을 좌우로 끌면 왼쪽은 시술 전, 오른쪽은 예상 디자인이 됩니다. 고객님이 직접 끌어보시게 하면 반응이 좋습니다.","x":0,"y":275,"w":824,"h":1555}]},{"name":"07-brow-quick","w":824,"h":1830,"marks":[{"label":"디자인 넘겨 고르기","note":"좌우로 밀어서 바꿉니다. 설정 화면까지 되돌아가지 않아도 됩니다.","x":24,"y":1412,"w":704,"h":147},{"label":"대표 색상 4종","note":"현장에서 자주 쓰는 넷만. 나머지는 메뉴얼 색상 탭에 있습니다.","x":24,"y":1613,"w":704,"h":132}]},{"name":"07c-brow-natfade","w":824,"h":1830,"marks":[{"label":"기존 눈썹 진하기","note":"100 은 사진 그대로, 0 은 원래 눈썹 자리에 피부만 보입니다. 눈썹이 진한 고객님은 먼저 낮추세요.","x":24,"y":1595,"w":704,"h":60},{"label":"원래 눈썹이 흐려진 모습","note":"그 위에 고른 디자인만 또렷하게 보여 차이를 설명하기 쉽습니다.","x":0,"y":275,"w":824,"h":1555}]},{"name":"15-carry","w":824,"h":1830,"marks":[{"label":"이어서 편집합니다","note":"앞서 한 작업이 있을 때만 나옵니다. 어느 사진 위에서 이어갈지 고르라는 안내입니다.","x":36,"y":1012,"w":752,"h":71},{"label":"밑그림 고르기","note":"앞 작업이 얹힌 사진과 맨얼굴 중에서 고릅니다. 둘 다 보여드리려면 앞 작업이 얹힌 쪽을 고르세요.","x":36,"y":1099,"w":752,"h":220},{"label":"이 사진으로 편집하기","note":"고른 사진 위에서 다음 부위를 시작합니다.","x":36,"y":1339,"w":752,"h":96}]},{"name":"16-both","w":824,"h":1830,"marks":[{"label":"눈썹과 입술이 한 화면에","note":"앞서 맞춘 눈썹 위에 입술이 얹혔습니다. 이 상태로 저장하면 한 장에 둘 다 담깁니다.","x":77,"y":355,"w":671,"h":837}]},{"name":"08-lip-quick","w":824,"h":1830,"marks":[{"label":"시술선","note":"예정선을 켜고 끕니다. 고객님께 보여드릴 땐 꺼야 결과만 깔끔합니다.","x":265,"y":196,"w":196,"h":58},{"label":"틴트 채움","note":"선 안쪽에 색을 채울지 정합니다.","x":470,"y":196,"w":214,"h":58},{"label":"재추출","note":"입술선이 어긋났을 때 다시 인식시킵니다.","x":215,"y":264,"w":134,"h":58},{"label":"원본복원","note":"인식 직후 선으로 되돌립니다.","x":358,"y":264,"w":141,"h":58},{"label":"대표 색상 8종","note":"로즈핑크 · 클래식레드 · 코랄피치 · 딥버건디 · 누드베이지 · 체리핑크 · 플럼베리 · 베이비핑크.","x":24,"y":1412,"w":704,"h":281}]},{"name":"09-lip-manual","w":824,"h":1830,"marks":[{"label":"메뉴얼 탭 4개","note":"윗입술 · 아랫입술 · 색상 · 저장.","x":0,"y":1338,"w":824,"h":133},{"label":"윗입술 조절","note":"상하 · 좌우 · 가로 길이감 · 전체 두께 순으로 맞추면 수월합니다.","x":36,"y":1723,"w":680,"h":60}]},{"name":"04b-standard-lip","w":824,"h":1830,"marks":[{"label":"기본 입술선으로 시작","note":"입술 인식이 안 되는 기기에서 켜세요. 표준 입술선을 얼굴 위에 놓고 끌어서 맞춥니다. 한 번 켜두면 계속 유지됩니다.","x":36,"y":1426,"w":752,"h":200},{"label":"메뉴얼을 골랐을 때만","note":"입술 + 메뉴얼 을 고르셔야 이 선택이 나타납니다. 퀵에는 없습니다.","x":420,"y":1287,"w":368,"h":115}]},{"name":"10-version","w":824,"h":1830,"marks":[{"label":"현재 버전","note":"지금 깔린 판 번호입니다.","x":425,"y":665,"w":285,"h":38},{"label":"새 버전 확인","note":"올라온 판이 있는지 봅니다. 있으면 받아서 설치 버튼이 나타납니다.","x":86,"y":857,"w":652,"h":70},{"label":"기기 진단","note":"눈썹이나 입술이 안 보일 때 펼쳐서 캡처해 보내주세요.","x":86,"y":1113,"w":652,"h":62}]}]}/*__END__*/;
+
+(function () {
+    "use strict";
+
+    var byName = {};
+    SHOT_DATA.shots.forEach(function (s) { byName[s.name] = s; });
+
+    document.getElementById("buildtag").textContent = "Build " + SHOT_DATA.build + " 화면";
+    // 만드는 쪽 사정은 원장님께 보일 필요가 없다. 이름만 남긴다.
+    document.getElementById("foot").textContent = "PMUS — Permanent Makeup Simulator";
+
+    var SVGNS = "http://www.w3.org/2000/svg";
+    function el(n, a) {
+        var e = document.createElementNS(SVGNS, n);
+        for (var k in a) e.setAttribute(k, a[k]);
+        return e;
+    }
+
+    // ── 그림 하나를 조립한다 ────────────────────────────────────────
+    document.querySelectorAll(".fig[data-shot]").forEach(function (fig) {
+        var name = fig.getAttribute("data-shot");
+        var shot = byName[name];
+        if (!shot) { fig.remove(); return; }
+
+        var box = document.createElement("div");
+        box.className = "shot";
+
+        var img = document.createElement("img");
+        img.src = "shots/" + name + ".webp";
+        img.alt = fig.getAttribute("data-cap") || "앱 화면";
+        img.loading = "lazy";
+        box.appendChild(img);
+
+        var svg = el("svg", { viewBox: "0 0 " + shot.w + " " + shot.h, "aria-hidden": "true" });
+
+        shot.marks.forEach(function (m, i) {
+            var pad = 7;
+            svg.appendChild(el("rect", {
+                x: m.x - pad, y: m.y - pad, width: m.w + pad * 2, height: m.h + pad * 2,
+                rx: 12, fill: "none", stroke: "var(--mark)", "stroke-width": 5,
+            }));
+
+            // 번호는 상자의 왼쪽 위 모서리에 걸쳐 놓는다.
+            // 바깥에 두면 버튼이 나란히 붙어 있을 때 어느 쪽 번호인지
+            // 헷갈린다 — 눈썹/입술 버튼에서 실제로 뒤바뀌어 보였다.
+            var r = 22;
+            var cx = Math.max(r + 3, Math.min(shot.w - r - 3, m.x - pad + 3));
+            var cy = Math.max(r + 3, Math.min(shot.h - r - 3, m.y - pad + 3));
+
+            svg.appendChild(el("circle", { cx: cx, cy: cy, r: r, fill: "var(--mark)" }));
+            var t = el("text", {
+                x: cx, y: cy, fill: "#fff", "font-size": 26, "font-weight": 700,
+                "font-family": "IBM Plex Mono, monospace",
+                "text-anchor": "middle", "dominant-baseline": "central",
+            });
+            t.textContent = String(i + 1);
+            svg.appendChild(t);
+        });
+
+        box.appendChild(svg);
+
+        var legend = document.createElement("div");
+        legend.className = "legend";
+
+        var ol = document.createElement("ol");
+        shot.marks.forEach(function (m, i) {
+            var li = document.createElement("li");
+            var n = document.createElement("span");
+            n.className = "n";
+            n.textContent = String(i + 1);
+            var body = document.createElement("div");
+            var b = document.createElement("b");
+            b.textContent = m.label;
+            var s = document.createElement("span");
+            s.textContent = m.note;
+            body.appendChild(b); body.appendChild(s);
+            li.appendChild(n); li.appendChild(body);
+            ol.appendChild(li);
+        });
+        legend.appendChild(ol);
+
+        var title = document.createElement("div");
+        title.className = "fig-title";
+        title.textContent = fig.getAttribute("data-cap") || "";
+
+        var body = document.createElement("div");
+        body.className = "fig-body";
+        body.appendChild(box);
+        body.appendChild(legend);
+
+        fig.appendChild(title);
+        fig.appendChild(body);
+    });
+
+    // ── 목차 ────────────────────────────────────────────────────────
+    var secs = Array.prototype.slice.call(document.querySelectorAll("section[data-sec]"));
+    var toc = document.getElementById("toc");
+    var navrow = document.getElementById("navrow");
+    secs.forEach(function (s) {
+        [toc, navrow].forEach(function (host) {
+            var a = document.createElement("a");
+            a.href = "#" + s.id;
+            a.textContent = s.getAttribute("data-sec");
+            a.setAttribute("data-for", s.id);
+            host.appendChild(a);
+        });
+    });
+    var links = Array.prototype.slice.call(document.querySelectorAll("[data-for]"));
+    function mark(id) {
+        links.forEach(function (a) { a.classList.toggle("on", a.getAttribute("data-for") === id); });
+    }
+    if ("IntersectionObserver" in window) {
+        var io = new IntersectionObserver(function (es) {
+            es.forEach(function (e) { if (e.isIntersecting) mark(e.target.id); });
+        }, { rootMargin: "-130px 0px -70% 0px" });
+        secs.forEach(function (s) { io.observe(s); });
+    }
+    mark(secs[0].id);
+
+    // ── 찾기 ────────────────────────────────────────────────────────
+    var units = Array.prototype.slice.call(document.querySelectorAll("[data-search]"))
+        .map(function (e) {
+            return { el: e, hay: (e.textContent + " " + e.getAttribute("data-search")).toLowerCase() };
+        });
+    var q = document.getElementById("q");
+    var noresult = document.getElementById("noresult");
+
+    function run() {
+        var term = q.value.trim().toLowerCase();
+        if (!term) {
+            units.forEach(function (u) { u.el.removeAttribute("data-hit"); });
+            secs.forEach(function (s) { s.removeAttribute("data-hit"); });
+            document.querySelectorAll("details.qa[open]").forEach(function (d) { d.open = false; });
+            noresult.hidden = true;
+            return;
+        }
+        var found = 0;
+        units.forEach(function (u) {
+            var hit = u.hay.indexOf(term) >= 0;
+            u.el.setAttribute("data-hit", hit ? "1" : "0");
+            if (hit) {
+                found++;
+                var d = u.el.closest ? u.el.closest("details") : null;
+                if (d) d.open = true;
+            }
+        });
+        secs.forEach(function (s) {
+            s.setAttribute("data-hit", s.querySelector('[data-search][data-hit="1"]') ? "1" : "0");
+        });
+        noresult.hidden = found > 0;
+    }
+    var timer = null;
+    q.addEventListener("input", function () {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(run, 120);
+    });
+    q.addEventListener("search", run);
+})();
+</script>

@@ -650,9 +650,20 @@ html.mui-on .mui-stage > .mui-shot {
     position: relative;
 }
 html.mui-on .mui-shot > .customer-photo,
+html.mui-on .mui-shot > .mui-before,
 html.mui-on .mui-shot > #dragCanvas {
     display: block !important;
     grid-area: 1 / 1;
+}
+/* '시술 전' 캔버스는 결과 캔버스와 같은 크기 규칙을 따른다 */
+html.mui-on .mui-shot > .mui-before {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 10px;
+    border: 1px solid #372F4A;
+    pointer-events: none;
 }
 
 /* 겹쳐 둔 두 장 중 지금 볼 것만 남긴다. 자리는 계속 차지하게 두어야
@@ -661,9 +672,11 @@ html.mui-on .mui-shot > #dragCanvas {
                   빈 자리로 뒤에 깔린 원본이 비쳐 두 장이 겹쳐 보인다.
      시술 전     — 사진만
      비교        — 둘 다 (캔버스를 반쪽만 남겨 좌우로 나눈다) */
+/* 사진 자체는 감춰 두고(불러오기용) 같은 배율로 다시 그린 캔버스를 보인다 */
 html.mui-on .mui-shot > .customer-photo { visibility: hidden; }
-html.mui-on .mui-shot.is-before > .customer-photo,
-html.mui-on .mui-shot.is-compare > .customer-photo { visibility: visible; }
+html.mui-on .mui-shot > .mui-before { visibility: hidden; }
+html.mui-on .mui-shot.is-before > .mui-before,
+html.mui-on .mui-shot.is-compare > .mui-before { visibility: visible; }
 html.mui-on .mui-shot.is-before > #dragCanvas { visibility: hidden; }
 
 /* 비교: 결과 캔버스에서 선 오른쪽만 남긴다 → 왼쪽 시술 전 / 오른쪽 예상.

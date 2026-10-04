@@ -181,8 +181,35 @@
         }
         var shot = el("div", "mui-shot");
         move(shot, beforeImg);
+        // '시술 전' 은 사진을 그대로 띄우지 않고 결과 캔버스와 똑같은 크기·
+        // 확대·이동으로 다시 그린다. 두 손가락으로 사진을 키운 뒤 비교하면
+        // 한쪽만 커져 보이던 문제(아이패드)를 막는다.
+        var beforeCv = document.createElement("canvas");
+        beforeCv.className = "mui-before";
+        shot.appendChild(beforeCv);
         move(shot, canvas);
         stage.appendChild(shot);
+
+        function drawBefore() {
+            if (!canvas || !beforeImg) return;
+            if (!shot.classList.contains("is-before") && !shot.classList.contains("is-compare")) return;
+            if (!beforeImg.complete || !beforeImg.naturalWidth) return;
+            var w = canvas.width, h = canvas.height;
+            if (!w || !h) return;
+            if (beforeCv.width !== w) beforeCv.width = w;
+            if (beforeCv.height !== h) beforeCv.height = h;
+            var v = (typeof window.__blView === "function") ? window.__blView() : { zoom: 100, panX: 0, panY: 0 };
+            var z = v.zoom / 100;
+            var bctx = beforeCv.getContext("2d");
+            bctx.setTransform(1, 0, 0, 1, 0, 0);
+            bctx.clearRect(0, 0, w, h);
+            bctx.translate(w / 2 + v.panX, h / 2 + v.panY);
+            bctx.scale(z, z);
+            bctx.translate(-w / 2, -h / 2);
+            bctx.drawImage(beforeImg, 0, 0, w, h);
+        }
+        window.__blAfterDraw = drawBefore;
+        if (beforeImg) beforeImg.addEventListener("load", drawBefore);
 
         // 비교용 가운데 선. 좌우로 끌면 경계가 움직여 사진 전체를
         // 시술 전으로도, 예상 디자인으로도 볼 수 있다.
@@ -254,6 +281,7 @@
             if (which === "before") { segBefore.classList.add("is-active"); shot.classList.add("is-before"); }
             else if (which === "compare") { segComp.classList.add("is-active"); shot.classList.add("is-compare"); }
             else segAfter.classList.add("is-active");
+            drawBefore();
 
             if (which === "compare") {
                 hint.textContent = "가운데 선을 좌우로 끌어 비교하세요";

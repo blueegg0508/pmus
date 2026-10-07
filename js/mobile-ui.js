@@ -228,8 +228,12 @@
             if (!cr.width || !cr.height) return;
             canvas.style.setProperty("--split", (splitRatio * 100) + "%");
             divider.style.left = (cr.left - sr.left + splitRatio * cr.width) + "px";
-            divider.style.top = (cr.top - sr.top) + "px";
-            divider.style.height = cr.height + "px";
+            // 사진이 무대보다 길면 아래가 시트에 가린다. 선과 손잡이는 보이는 부분에만 둔다
+            // (손잡이를 보이는 높이의 아래쪽 20% 에 두므로).
+            var top = Math.max(cr.top, sr.top), bottom = Math.min(cr.bottom, sr.bottom);
+            if (bottom <= top) { top = cr.top; bottom = cr.bottom; }
+            divider.style.top = (top - sr.top) + "px";
+            divider.style.height = (bottom - top) + "px";
         }
 
         /** 손가락 위치를 사진 안에서의 비율로 바꾼다 */

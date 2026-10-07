@@ -18,7 +18,9 @@
 (function () {
     "use strict";
 
-    if (!window.matchMedia("(max-width: 820px)").matches) return;   // 폰에서만
+    // 폰, 그리고 손가락으로 쓰는 태블릿(아이패드를 가로로 눕힌 경우 포함).
+    // 마우스로 쓰는 PC 는 예전 3열 화면 그대로 둔다.
+    if (!window.matchMedia("(max-width: 820px), (pointer: coarse) and (max-width: 1400px)").matches) return;
     if (document.querySelector(".mui-shell")) return;               // 중복 실행 방지
 
     var KIND = document.getElementById("dragCanvas") ? "brow"
@@ -201,6 +203,15 @@
     }
     layoutWide();
     window.addEventListener("resize", layoutWide);
+
+    /* 가로 화면(태블릿을 눕혔을 때): 왼쪽 사진, 오른쪽 퀵·메뉴얼 패널.
+     * 시트를 아래에서 끌어올리는 대신 오른쪽에 붙박아 둔다. */
+    function isLand() { return window.innerWidth > window.innerHeight && window.innerWidth >= 900; }
+    function layoutLand() {
+        document.documentElement.classList.toggle("mui-land", isLand());
+    }
+    layoutLand();
+    window.addEventListener("resize", layoutLand);
 
     // ── 2. 사진 무대 + 보기 전환 ────────────────────────────────────────
     var canvas = isBrow ? $("dragCanvas") : $("lipCanvas");
@@ -1498,6 +1509,11 @@
     /** 시트가 실제로 가리는 높이만큼 무대 아래에 여백을 줘서, 사진이 '보이는
      *  영역'의 한가운데 오도록 한다. (사진 크기 자체는 건드리지 않는다) */
     function syncStagePadding() {
+        // 가로 화면에서는 패널이 옆에 있으니 사진을 가리지 않는다
+        if (document.documentElement.classList.contains("mui-land")) {
+            stage.style.paddingBottom = "8px";
+            return;
+        }
         var top = sheet.getBoundingClientRect().top;
         var covered = Math.max(0, window.innerHeight - top);
         stage.style.paddingBottom = Math.max(8, Math.round(covered) + 8) + "px";

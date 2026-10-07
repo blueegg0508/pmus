@@ -325,8 +325,10 @@ html.mui-on .mui-panes * { max-width: 100%; }
     letter-spacing: -.2px;
 }
 
-/* 데스크톱 미리보기에서는 이 레이아웃을 쓰지 않는다 */
-@media (min-width: 821px) {
+/* 데스크톱 미리보기에서는 이 레이아웃을 쓰지 않는다.
+   손가락으로 쓰는 태블릿(가로로 눕힌 아이패드 등)은 1400px 까지 이 레이아웃을 쓴다
+   — mobile-ui.js 맨 위의 조건과 짝을 맞출 것. */
+@media (min-width: 821px) and (pointer: fine), (min-width: 1401px) {
     html.mui-on .mui-shell { display: none; }
     html.mui-on #container { display: block !important; }
     html.mui-on, html.mui-on body { overflow: auto; height: auto; }
@@ -1109,3 +1111,24 @@ html.mui-on.mui-wide .mui-topbar > .mui-settings {
 }
 html.mui-on.mui-wide .mui-topbar > .mui-seg { justify-self: center; }
 html.mui-on.mui-wide .mui-topbar > .mui-actions { justify-self: end; margin-left: 0; }
+
+/* ── 가로 화면(태블릿을 눕혔을 때): 왼쪽 사진 | 오른쪽 퀵·메뉴얼 패널 ── */
+/* mobile-ui.js layoutLand() 가 가로 + 900px 이상에서 .mui-land 를 붙인다. */
+html.mui-on.mui-land { --panel-w: clamp(340px, 34vw, 440px); }
+html.mui-on.mui-land .mui-shell { padding-right: var(--panel-w); }
+html.mui-on.mui-land .mui-sheet,
+html.mui-on.mui-land .mui-sheet[data-snap] {
+    top: calc(var(--top-inset, 0px));
+    bottom: 0;
+    left: auto;
+    right: 0;
+    width: var(--panel-w);
+    height: auto;
+    border-top: 0;
+    border-left: 1px solid #4A3F63;
+    border-radius: 0;
+    box-shadow: -10px 0 30px rgba(0,0,0,.35);
+    transition: none;
+}
+html.mui-on.mui-land .mui-handle { display: none; }
+html.mui-on.mui-land .mui-hint { left: calc((100% - var(--panel-w)) / 2); }

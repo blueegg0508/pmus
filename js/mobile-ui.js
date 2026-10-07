@@ -188,7 +188,11 @@
         if (wide) {
             if (btnSettings.parentNode !== topbar) topbar.insertBefore(btnSettings, seg);
             root.classList.add("mui-wide");
-            root.style.setProperty("--top-inset", topInset() + "px");
+            // 아이패드 OS 는 상태표시줄 아래로 그보다 더 넓게 흐림 띠를 깐다.
+            // 상태표시줄 높이만큼만 내리면 버튼이 그 띠에 걸려 흐릿하게 보였다 (2026-10-07).
+            // 상태표시줄이 겹칠 때(홈 화면 웹앱)만 한 줄 높이(44px)를 더 내린다.
+            var ins = topInset();
+            root.style.setProperty("--top-inset", (ins ? ins + 44 : 0) + "px");
         } else {
             if (btnSettings.parentNode !== shell) shell.insertBefore(btnSettings, topbar);
             root.classList.remove("mui-wide");

@@ -1088,3 +1088,24 @@ html.mui-on .mui-chips .btn-extract-main {
     box-shadow: none !important;
     font-weight: 700 !important;
 }
+
+/* ── 넓은 화면(아이패드): 사진·디자인 변경 | 보기 전환(가운데) | 되돌리기 ── */
+/* mobile-ui.js layoutWide() 가 600px 이상에서 .mui-wide 를 붙이고 버튼을 옮긴다. */
+html.mui-on.mui-wide .mui-topbar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding-top: calc(7px + var(--top-inset, 0px));
+}
+html.mui-on.mui-wide .mui-topbar > .mui-settings {
+    justify-self: start;
+    width: auto;
+    height: 34px;
+    padding: 0 calc(12px * var(--fit));
+    border: 1px solid #5A4A20;
+    border-radius: 8px;
+    font-size: calc(12.5px * var(--fit));
+    white-space: nowrap;
+}
+html.mui-on.mui-wide .mui-topbar > .mui-seg { justify-self: center; }
+html.mui-on.mui-wide .mui-topbar > .mui-actions { justify-self: end; margin-left: 0; }

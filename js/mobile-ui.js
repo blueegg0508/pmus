@@ -166,6 +166,38 @@
     document.body.appendChild(shell);
     document.documentElement.classList.add("mui-on");
 
+    /* 넓은 화면(아이패드): [사진·디자인 변경] 을 맨 위 가로 전체 줄에서 빼어
+     * 보기 전환 줄 왼쪽에 둔다. 맨 위 줄은 아이패드 상태표시줄(시간·배터리)에
+     * 가려 누르기 어려웠다. 보기 전환은 가운데, 되돌리기·초기화는 오른쪽.
+     * 상태표시줄 높이는 바깥 문서에서 잰다 — 이 iframe 안에서는 env() 가 0 이다.
+     * 폰은 예전 배치 그대로 둔다. */
+    function topInset() {
+        try {
+            var d = window.parent.document;
+            var probe = d.createElement("div");
+            probe.style.cssText = "position:fixed;visibility:hidden;pointer-events:none;top:0;left:0;padding-top:env(safe-area-inset-top);";
+            d.body.appendChild(probe);
+            var v = parseFloat(window.parent.getComputedStyle(probe).paddingTop) || 0;
+            probe.remove();
+            return Math.round(v);
+        } catch (e) { return 0; }
+    }
+    function layoutWide() {
+        var wide = window.innerWidth >= 600;
+        var root = document.documentElement;
+        if (wide) {
+            if (btnSettings.parentNode !== topbar) topbar.insertBefore(btnSettings, seg);
+            root.classList.add("mui-wide");
+            root.style.setProperty("--top-inset", topInset() + "px");
+        } else {
+            if (btnSettings.parentNode !== shell) shell.insertBefore(btnSettings, topbar);
+            root.classList.remove("mui-wide");
+            root.style.removeProperty("--top-inset");
+        }
+    }
+    layoutWide();
+    window.addEventListener("resize", layoutWide);
+
     // ── 2. 사진 무대 + 보기 전환 ────────────────────────────────────────
     var canvas = isBrow ? $("dragCanvas") : $("lipCanvas");
 

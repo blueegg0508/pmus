@@ -1128,3 +1128,6 @@ body.is-free .lic-desc { margin-bottom: 4px; }
     transform: translateX(-50%) rotate(45deg);
 }
 .pwa-card .btn { width: 100%; }
+
+/* 안드로이드 크롬: 설치 창을 바로 여는 버튼 */
+.pwa-install-go { display: block; width: 100%; margin: 4px 0 10px; }

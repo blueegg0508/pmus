@@ -10,13 +10,13 @@
  * =========================================================================
  */
 
-import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, engineStatus } from "./face-detect.js?v=84";
-import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=84";
-import * as License from "./license.js?v=84";
-import * as Custom from "./custom-designs.js?v=84";
-import * as Update from "./update.js?v=84";
+import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, engineStatus } from "./face-detect.js?v=85";
+import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=85";
+import * as License from "./license.js?v=85";
+import * as Custom from "./custom-designs.js?v=85";
+import * as Update from "./update.js?v=85";
 
-const BUILD = "84";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
+const BUILD = "85";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
 /**
  * 작업용 사진의 최대 변 길이.
  *
@@ -362,8 +362,10 @@ function saveToGallery(dataUrl, filename) {
 async function runSaveQueue() {
     // 아이폰 웹앱: 사진첩에 바로 못 쓴다. 모아서 '사진 앱에 저장' 창으로 넘긴다
     // (공유 창 → 이미지 저장). pwa.js 참고.
+    // 안드로이드 크롬은 공유 창에 '저장' 이 없으니 아래 내려받기로 바로 저장한다
+    // (갤러리의 Download 앨범에 들어간다).
     const web = window.PMUSWeb;
-    if (web && web.isWeb && web.canShareImages()) {
+    if (web && web.isWeb && web.isIOS && web.canShareImages()) {
         const jobs = saveQueue.splice(0);
         if (jobs.length) web.saveImages(jobs);
         return;

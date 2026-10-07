@@ -243,7 +243,8 @@ async function edition() {
     } catch (e) { /* 브라우저 미리보기 등 */ }
     _edition = {
         pkg,
-        free: /\.edu$/.test(pkg),
+        // 앱(APK)은 설치 ID 로, 웹앱은 교육용 주소로 빌드할 때 심어 둔 표시로 안다
+        free: /\.edu$/.test(pkg) || (typeof window !== "undefined" && window.PMUS_EDITION === "edu"),
     };
     return _edition;
 }

@@ -10,13 +10,13 @@
  * =========================================================================
  */
 
-import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, engineStatus } from "./face-detect.js?v=92";
-import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=92";
-import * as License from "./license.js?v=92";
-import * as Custom from "./custom-designs.js?v=92";
-import * as Update from "./update.js?v=92";
+import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, engineStatus } from "./face-detect.js?v=93";
+import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=93";
+import * as License from "./license.js?v=93";
+import * as Custom from "./custom-designs.js?v=93";
+import * as Update from "./update.js?v=93";
 
-const BUILD = "92";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
+const BUILD = "93";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
 /**
  * 작업용 사진의 최대 변 길이.
  *
@@ -1969,7 +1969,7 @@ async function checkWebUpdate(quiet) {
         $("ver-get").textContent = "새 버전 적용하기";
         verSay("새 버전을 받아 두었습니다. 아래 버튼을 누르면 화면이 한 번 새로 뜨면서 적용됩니다.", "new");
     } else if (r === "latest") {
-        verSay("최신 버전입니다.\n웹앱은 새 버전을 저절로 받아 두었다가, 다음에 열 때 적용합니다.");
+        verSay("최신 버전입니다.\n새 버전이 나오면 저절로 받아, 사진을 고르기 전 첫 화면에서 바로 적용합니다.");
     } else {
         verSay("홈 화면에 추가한 앱에서만 새 버전을 저절로 받습니다.");
     }

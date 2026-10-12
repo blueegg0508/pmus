@@ -1,9 +1,3 @@
 {
- "revoked": [
-  {
-   "lic": "BL-TEST-0",
-   "reason": "stop",
-   "at": "2026-10-12"
-  }
- ]
+ "revoked": []
 }

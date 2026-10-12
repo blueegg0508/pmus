@@ -10,13 +10,13 @@
  * =========================================================================
  */
 
-import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, engineStatus } from "./face-detect.js?v=103";
-import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=103";
-import * as License from "./license.js?v=103";
-import * as Custom from "./custom-designs.js?v=103";
-import * as Update from "./update.js?v=103";
+import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, engineStatus } from "./face-detect.js?v=104";
+import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=104";
+import * as License from "./license.js?v=104";
+import * as Custom from "./custom-designs.js?v=104";
+import * as Update from "./update.js?v=104";
 
-const BUILD = "103";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
+const BUILD = "104";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
 /**
  * 작업용 사진의 최대 변 길이.
  *
@@ -576,12 +576,27 @@ async function refreshLicense() {
                 "교육용 무료 체험 시간이 끝났습니다.<br>" +
                 "계속 쓰시려면 <strong>정식판</strong>을 판매처에 문의해 주세요.";
         }
-        if (lic.reason && lic.reason !== "미등록") {
+        if (lic.trialEnded) {
+            document.querySelector(".lic-title").textContent = "무료 체험이 끝났습니다";
+            $("lic-message").innerHTML =
+                "7일 무료 체험 기간이 끝났습니다.<br>" +
+                "계속 쓰시려면 라이선스를 구매하신 뒤, 아래 <strong>기기 코드</strong>를 보내 주시고 받은 등록 키를 넣어 주세요.";
+        }
+        $("lic-back-trial").hidden = true;
+        if (lic.reason && lic.reason !== "미등록" && !lic.trialEnded) {
             showLicError(lic.reason, lic.detail);
         }
         return;
     }
+    $("lic-back-trial").hidden = true;
     document.body.classList.toggle("is-free", !!lic.free);
+    document.body.classList.toggle("is-trial", !!lic.trial);
+    if (lic.trialFresh) $("trial-sheet").hidden = false;
+    if (lic.trial) {
+        const d = new Date(lic.endsAt);
+        $("trial-until").textContent = (d.getMonth() + 1) + "월 " + d.getDate() + "일 " +
+            String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") + "까지";
+    }
 
     // 사용 가능 → 사진 단계부터 다시 노출
     $("step-photo").hidden = false;
@@ -595,6 +610,11 @@ async function refreshLicense() {
         // 평소에는 '무료' 만, 끝이 가까워지면 그때 시간을 같이 보여 준다.
         const soon = lic.hoursLeft <= 6;
         badge.textContent = soon ? ("무료 " + lic.hoursLeft + "시간") : "무료";
+        badge.className = "lic-badge is-free" + (soon ? " is-soon" : "");
+    } else if (lic.trial) {
+        // 7일 무료 체험 — 남은 날, 하루 안쪽이면 시간
+        const soon = lic.hoursLeft <= 24;
+        badge.textContent = soon ? ("체험 " + lic.hoursLeft + "시간") : ("체험 D-" + lic.daysLeft);
         badge.className = "lic-badge is-free" + (soon ? " is-soon" : "");
     } else if (lic.daysLeft === null) {
         badge.textContent = "영구";
@@ -643,7 +663,64 @@ function showLicError(msg, detail) {
     box.hidden = false;
 }
 
+/** 체험 중에 정식 등록을 하러 등록 화면을 연다 (돌아가기 버튼과 함께) */
+function openRegisterFromTrial() {
+    ["step-photo", "step-mode", "step-design", "step-canvas"].forEach((id) => { $(id).hidden = true; });
+    document.querySelector(".lic-title").textContent = "라이선스 등록";
+    $("lic-message").innerHTML =
+        "무료 체험 중입니다 — 남은 기간 <strong>" + (state.lic.hoursLeft <= 24
+            ? state.lic.hoursLeft + "시간" : state.lic.daysLeft + "일") + "</strong>.<br>" +
+        "구매하신 뒤 아래 <strong>기기 코드</strong>를 보내 주시고, 받은 등록 키를 넣어 주세요.";
+    $("license-gate").hidden = false;
+    $("lic-back-trial").hidden = false;
+    window.scrollTo({ top: 0 });
+}
+
+/** 결제 · 환불 규정 — policy.html 의 #policy 를 가져와 보여 준다 */
+let policyLoaded = false;
+async function openPolicy() {
+    $("policy-sheet").hidden = false;
+    if (policyLoaded) return;
+    try {
+        const html = await fetch("policy.html?v=" + BUILD).then((r) => r.text());
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        const el = doc.getElementById("policy");
+        if (el) { $("policy-body").innerHTML = el.innerHTML; policyLoaded = true; }
+    } catch (e) {
+        $("policy-body").textContent = "규정을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.";
+    }
+}
+
+/** 체험이 끝나는 순간 등록 화면으로 — 1분마다 남은 시간도 고친다 */
+function watchTrial() {
+    setInterval(() => {
+        const lic = state.lic;
+        if (!lic || !lic.trial || !lic.active) return;
+        if (Date.now() >= lic.endsAt) {
+            unmountSimulator();
+            refreshLicense();
+            return;
+        }
+        const msLeft = lic.endsAt - Date.now();
+        lic.daysLeft = Math.ceil(msLeft / 86400000);
+        lic.hoursLeft = Math.ceil(msLeft / 3600000);
+        const badge = $("lic-badge");
+        const soon = lic.hoursLeft <= 24;
+        badge.textContent = soon ? ("체험 " + lic.hoursLeft + "시간") : ("체험 D-" + lic.daysLeft);
+        badge.className = "lic-badge is-free" + (soon ? " is-soon" : "");
+    }, 60000);
+}
+
 function bindLicenseUI() {
+    document.querySelectorAll("[data-open-policy]").forEach((b) => b.addEventListener("click", openPolicy));
+    $("policy-close").addEventListener("click", () => { $("policy-sheet").hidden = true; });
+    $("trial-ok").addEventListener("click", () => { $("trial-sheet").hidden = true; });
+    $("lic-back-trial").addEventListener("click", () => {
+        $("lic-error").hidden = true;
+        refreshLicense();
+    });
+    watchTrial();
+
     $("lic-copy-device").addEventListener("click", async () => {
         const code = $("lic-device-code").textContent;
         try {
@@ -668,6 +745,10 @@ function bindLicenseUI() {
     });
 
     $("lic-badge").addEventListener("click", () => {
+        if (state.lic && state.lic.trial) {
+            openRegisterFromTrial();
+            return;
+        }
         if (state.lic && state.lic.free) {
             const h = state.lic.hoursLeft;
             toast("교육용 무료판입니다 — " + h + "시간 뒤에 끝납니다", 3600);

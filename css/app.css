@@ -1220,3 +1220,18 @@ body.is-free .lic-desc { margin-bottom: 4px; }
 /* 이용 종료 인사 */
 .lic-sign { display: inline-block; margin-top: 6px; color: var(--accent-2, #E8C65A); font-weight: 700; }
 
+
+/* ── 직원용(판매 · 교육) — PC 의 넓은 화면에서도 태블릿 세로 화면처럼 ──────────
+   PC 는 시뮬레이터 틀이 화면 전체로 넓어져 예전 3열 화면이 나왔다 (2026-10-14).
+   직원용은 폭을 820px(태블릿 세로)로 묶어 가운데에 둔다. 틀 안 폭이 820 이하라야
+   mobile-ui.js 가 태블릿 화면을 켠다. transform 은 화면 아래 고정 버튼도 이 폭 안에 두려는 것. */
+@media (min-width: 821px) {
+    html.ed-staff body,
+    html.ed-staff body.sim-fullscreen {
+        max-width: 820px;
+        min-height: 100vh;
+        transform: translateZ(0);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, .06), 0 0 60px rgba(0, 0, 0, .45);
+    }
+    html.ed-staff body.sim-fullscreen #sim-frame { height: 100vh !important; }
+}

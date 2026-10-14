@@ -257,6 +257,8 @@ async function edition() {
         pkg,
         // 앱(APK)은 설치 ID 로, 웹앱은 교육용 주소로 빌드할 때 심어 둔 표시로 안다
         free: /\.edu$/.test(pkg) || (typeof window !== "undefined" && window.PMUS_EDITION === "edu"),
+        // 직원용(판매 · 교육) — pmus.io/app. 라이선스 대신 pmus.io/admin 의 승인된 아이디로 연다.
+        staff: typeof window !== "undefined" && window.PMUS_EDITION === "staff",
     };
     return _edition;
 }
@@ -264,6 +266,68 @@ async function edition() {
 /** 교육용 무료판인가 (브라우저 미리보기에서는 아니다) */
 export async function isFree() {
     return (await edition()).free;
+}
+
+/* -------------------------------------------------------------------
+ * 직원용 (판매 · 직원 교육) — https://pmus.io/app
+ * 라이선스를 묻지 않는다. 대신 같은 주소(pmus.io)의 웹 관리자에 로그인한
+ * '승인된 아이디' 인지 열 때마다 인터넷으로 확인한다.
+ *   · 로그인 정보는 웹 관리자(supabase-js)가 저장해 둔 것을 함께 쓴다 (같은 주소라 공유된다).
+ *   · 인터넷이 안 되면 열리지 않는다 — 전국 어디서든 인터넷만 되면 된다.
+ *   · 관리자 승인을 취소하면 다음에 열 때(또는 30분 안에) 막힌다.
+ * ------------------------------------------------------------------- */
+const SB_URL = "https://qkdpzsmipwtlzabsfagi.supabase.co";
+const SB_KEY = "sb_publishable_bCCohNIlpyFaCOL0MFn-ow_SAs8-YpX";        // 공개 키 (웹페이지에 들어가도 되는 키)
+const SB_STORE = "sb-qkdpzsmipwtlzabsfagi-auth-token";                  // supabase-js 가 로그인 정보를 두는 이름
+
+async function staffLicense(deviceCode) {
+    const deny = (reason, detail, extra) => Object.assign({
+        active: false, staff: true, reason, detail, features: [], daysLeft: null, deviceCode,
+    }, extra || {});
+    let sess = null;
+    try { sess = JSON.parse(localStorage.getItem(SB_STORE) || "null"); } catch (e) { /* 깨진 값 */ }
+    if (!sess || !sess.refresh_token) {
+        return deny("직원 로그인이 필요합니다", "pmus.io/admin 에서 승인된 아이디로 로그인해 주세요", { needsLogin: true });
+    }
+    try {
+        // 열쇠(access token)가 1분 안에 끝나면 새로 받는다 — 받은 것은 웹 관리자와 함께 쓰도록 같은 자리에 둔다
+        if (!sess.access_token || !sess.expires_at || sess.expires_at < Date.now() / 1000 + 60) {
+            const r = await fetch(SB_URL + "/auth/v1/token?grant_type=refresh_token", {
+                method: "POST", headers: { apikey: SB_KEY, "content-type": "application/json" },
+                body: JSON.stringify({ refresh_token: sess.refresh_token }), cache: "no-store",
+            });
+            if (r.status === 400 || r.status === 401) {
+                localStorage.removeItem(SB_STORE);
+                return deny("직원 로그인이 필요합니다", "로그인이 끝났습니다. pmus.io/admin 에서 다시 로그인해 주세요", { needsLogin: true });
+            }
+            if (!r.ok) throw new Error("token " + r.status);
+            const j = await r.json();
+            if (!j.expires_at) j.expires_at = Math.floor(Date.now() / 1000) + (j.expires_in || 3600);
+            localStorage.setItem(SB_STORE, JSON.stringify(j));
+            sess = j;
+        }
+        const r2 = await fetch(SB_URL + "/rest/v1/admins?select=email", {
+            headers: { apikey: SB_KEY, authorization: "Bearer " + sess.access_token }, cache: "no-store",
+        });
+        if (!r2.ok) throw new Error("admins " + r2.status);
+        const list = await r2.json();
+        if (!list.length) {
+            return deny("승인되지 않은 아이디입니다", "개발자에게 승인을 요청해 주세요", { needsLogin: true });
+        }
+        const email = (sess.user && sess.user.email) || "";
+        return {
+            active: true, staff: true, features: ["*"],
+            payload: { shop: "PMUS 직원용 (판매 · 교육)", plan: "perpetual", feat: ["*"], staff: email },
+            daysLeft: null, deviceCode,
+        };
+    } catch (e) {
+        return deny("인터넷 연결이 필요합니다", "직원용은 인터넷에 연결된 곳에서만 열립니다", { staffOffline: true });
+    }
+}
+
+/** 직원용인가 */
+export async function isStaff() {
+    return (await edition()).staff;
 }
 
 /** 무료판의 남은 시간을 잰다. 처음이면 그때부터 세기 시작한다. */
@@ -341,6 +405,9 @@ async function trialLicense(deviceCode) {
 
 export async function getLicense() {
     const deviceCode = await getDeviceCode();
+
+    // 직원용은 라이선스 대신 승인된 아이디를 본다
+    if ((await edition()).staff) return staffLicense(deviceCode);
 
     // 무료판은 토큰을 보지 않는다. 등록이라는 절차 자체가 없다.
     if ((await edition()).free) return freeLicense(deviceCode);
@@ -424,6 +491,8 @@ async function revokedInfo(lic) {
  * @returns 목록을 새로 받았으면 true
  */
 export async function syncRevocations() {
+    // 직원용은 사용 중지 목록 대신 열 때마다 승인을 다시 본다 — 그대로 getLicense 로 넘긴다
+    if ((await edition()).staff) return true;
     try {
         const ctrl = typeof AbortController === "function" ? new AbortController() : null;
         const timer = ctrl ? setTimeout(() => ctrl.abort(), 5000) : 0;

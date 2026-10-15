@@ -280,6 +280,16 @@ const SB_URL = "https://qkdpzsmipwtlzabsfagi.supabase.co";
 const SB_KEY = "sb_publishable_bCCohNIlpyFaCOL0MFn-ow_SAs8-YpX";        // 공개 키 (웹페이지에 들어가도 되는 키)
 const SB_STORE = "sb-qkdpzsmipwtlzabsfagi-auth-token";                  // supabase-js 가 로그인 정보를 두는 이름
 
+/** 서버(pmus.io/app 잠금)가 보는 쿠키에 로그인 표를 넣는다. 없으면 지운다. */
+function staffCookie(sess) {
+    try {
+        const left = sess && sess.expires_at ? sess.expires_at - Math.floor(Date.now() / 1000) : 0;
+        document.cookie = sess && sess.access_token && left > 0
+            ? "pmus_at=" + sess.access_token + "; path=/; max-age=" + left + "; secure; samesite=lax"
+            : "pmus_at=; path=/; max-age=0; secure; samesite=lax";
+    } catch (e) { /* 미리보기 */ }
+}
+
 async function staffLicense(deviceCode) {
     const deny = (reason, detail, extra) => Object.assign({
         active: false, staff: true, reason, detail, features: [], daysLeft: null, deviceCode,
@@ -287,17 +297,21 @@ async function staffLicense(deviceCode) {
     let sess = null;
     try { sess = JSON.parse(localStorage.getItem(SB_STORE) || "null"); } catch (e) { /* 깨진 값 */ }
     if (!sess || !sess.refresh_token) {
+        staffCookie(null);
         return deny("직원 로그인이 필요합니다", "pmus.io/admin 에서 승인된 아이디로 로그인해 주세요", { needsLogin: true });
     }
     try {
-        // 열쇠(access token)가 1분 안에 끝나면 새로 받는다 — 받은 것은 웹 관리자와 함께 쓰도록 같은 자리에 둔다
-        if (!sess.access_token || !sess.expires_at || sess.expires_at < Date.now() / 1000 + 60) {
+        // 로그인 표(access token, 1시간짜리)가 35분 안에 끝나면 새로 받는다. 30분마다 다시 보므로
+        // 표가 늘 30분 넘게 남아, 쓰는 도중 서버 잠금(쿠키)에 걸리지 않는다.
+        // 받은 것은 웹 관리자와 함께 쓰도록 같은 자리에 둔다.
+        if (!sess.access_token || !sess.expires_at || sess.expires_at < Date.now() / 1000 + 35 * 60) {
             const r = await fetch(SB_URL + "/auth/v1/token?grant_type=refresh_token", {
                 method: "POST", headers: { apikey: SB_KEY, "content-type": "application/json" },
                 body: JSON.stringify({ refresh_token: sess.refresh_token }), cache: "no-store",
             });
             if (r.status === 400 || r.status === 401) {
                 localStorage.removeItem(SB_STORE);
+                staffCookie(null);
                 return deny("직원 로그인이 필요합니다", "로그인이 끝났습니다. pmus.io/admin 에서 다시 로그인해 주세요", { needsLogin: true });
             }
             if (!r.ok) throw new Error("token " + r.status);
@@ -310,6 +324,7 @@ async function staffLicense(deviceCode) {
             headers: { apikey: SB_KEY, authorization: "Bearer " + sess.access_token }, cache: "no-store",
         });
         if (!r2.ok) throw new Error("admins " + r2.status);
+        staffCookie(sess);
         const list = await r2.json();
         if (!list.length) {
             return deny("승인되지 않은 아이디입니다", "개발자에게 승인을 요청해 주세요", { needsLogin: true });

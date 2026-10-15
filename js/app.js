@@ -10,13 +10,13 @@
  * =========================================================================
  */
 
-import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, engineStatus } from "./face-detect.js?v=109";
-import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=109";
-import * as License from "./license.js?v=109";
-import * as Custom from "./custom-designs.js?v=109";
-import * as Update from "./update.js?v=109";
+import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, engineStatus } from "./face-detect.js?v=110";
+import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=110";
+import * as License from "./license.js?v=110";
+import * as Custom from "./custom-designs.js?v=110";
+import * as Update from "./update.js?v=110";
 
-const BUILD = "109";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
+const BUILD = "110";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
 /**
  * 작업용 사진의 최대 변 길이.
  *
@@ -757,6 +757,8 @@ function bindLicenseUI() {
     setTimeout(checkRevocation, 1500);
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkRevocation(); });
     window.addEventListener("online", checkRevocation);
+    // 직원용: 다른 창(웹 관리자)에서 로그아웃하면 바로 잠근다
+    window.addEventListener("storage", (e) => { if (e.key && e.key.indexOf("-auth-token") > 0) checkRevocation(); });
     setInterval(checkRevocation, 30 * 60 * 1000);
     document.querySelectorAll("[data-open-policy]").forEach((b) => b.addEventListener("click", openPolicy));
     $("policy-close").addEventListener("click", () => { $("policy-sheet").hidden = true; });

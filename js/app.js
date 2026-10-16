@@ -10,13 +10,13 @@
  * =========================================================================
  */
 
-import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, engineStatus } from "./face-detect.js?v=115";
-import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=115";
-import * as License from "./license.js?v=115";
-import * as Custom from "./custom-designs.js?v=115";
-import * as Update from "./update.js?v=115";
+import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, engineStatus } from "./face-detect.js?v=116";
+import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=116";
+import * as License from "./license.js?v=116";
+import * as Custom from "./custom-designs.js?v=116";
+import * as Update from "./update.js?v=116";
 
-const BUILD = "115";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
+const BUILD = "116";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
 /**
  * 작업용 사진의 최대 변 길이.
  *
@@ -587,6 +587,17 @@ async function refreshLicense() {
             $("lic-message").innerHTML = lic.staffOffline
                 ? "직원용(판매 · 교육)은 <strong>인터넷에 연결된 곳</strong>에서만 열립니다.<br>와이파이 · 데이터를 켠 뒤 다시 열어 주세요."
                 : (lic.detail || "") + "<br><br><a class=\"btn btn-primary\" style=\"display:inline-block;text-decoration:none\" href=\"/admin?next=app\">직원 로그인</a>";
+            $("lic-back-trial").hidden = true;
+            return;
+        }
+        if (lic.needsTrialLogin) {
+            // 7일 체험 — 카카오 로그인으로 시작 (한 분당 한 번, 서버 기록)
+            document.querySelector(".lic-title").textContent = "7일 무료 체험 시작하기";
+            $("lic-message").innerHTML =
+                "카카오 계정으로 로그인하시면 <strong>7일 동안 모든 기능</strong>을 무료로 쓰실 수 있습니다.<br>" +
+                "체험은 <strong>한 분당 한 번</strong>이며, 휴대폰 · 태블릿 · 브라우저를 바꿔도 남은 기간이 그대로 이어집니다.<br><br>" +
+                "<a class=\"btn kakao-btn\" href=\"" + License.kakaoLoginUrl() + "\">카카오로 시작하기</a>" +
+                "<br><small>이미 구매하셨다면 아래에 등록 키를 넣어 주세요.</small>";
             $("lic-back-trial").hidden = true;
             return;
         }
@@ -2329,6 +2340,8 @@ function bindDiag() {
     bindEditModeTabs();
     bindDiag();
     $("carry-go").addEventListener("click", startEditing);
+    // 카카오 로그인에서 돌아왔으면 로그인 정보를 받아 서버에 체험 시작을 기록한다
+    if (License.takeLoginFromUrl()) await License.syncTrial();
     await refreshLicense();
     if (!state.lic.active) {            // 등록 전에는 무거운 초기화를 하지 않는다
         hideSplash();

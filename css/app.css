@@ -1238,3 +1238,10 @@ html.ed-staff body.sim-fullscreen #sim-frame { height: 100vh !important; display
    전체화면용 max-width:none 이 그대로 남아 PC 에서 가로로 길게 늘어났다 (2026-10-15). */
 html.ed-staff body.sim-fullscreen.settings-open { max-width: 720px; overflow: visible; height: auto; }
 html.ed-staff body.sim-fullscreen.settings-open .settings-toggle { left: 0; right: 0; margin: 0 auto; max-width: 720px; }
+
+/* 카카오로 7일 체험 시작 (카카오 안내 색) */
+.kakao-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 220px; padding: 13px 22px; border-radius: 12px;
+    background: #FEE500; color: #191919 !important; font-weight: 800; text-decoration: none;
+}

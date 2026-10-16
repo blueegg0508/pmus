@@ -389,7 +389,146 @@ async function freeLicense(deviceCode) {
  * 끝나면 라이선스 등록 화면으로 바뀐다 (reason 을 남겨 등록 화면이 알려 준다).
  * 체험 중에도 등록 키를 넣으면 바로 정식으로 바뀐다.
  */
+/* -------------------------------------------------------------------
+ * 7일 체험을 서버에 기록한다 — 카카오 로그인 (2026-10-16)
+ * 예전에는 시작일을 브라우저에만 적어 두어, 브라우저를 바꾸거나 다시 깔면
+ * 7일이 새로 시작됐다. 이제 카카오 계정 하나에 체험 한 번, 시작일은 서버
+ * (수파베이스 trials 표, start_trial 함수 — license/supabase-trial.sql) 가 정한다.
+ *   · 같은 기기 코드로 다른 카카오 계정을 써도 그 기기의 첫 시작일을 따른다.
+ *   · 수파베이스에서 카카오 로그인을 켜기 전에는 예전처럼 브라우저 기록으로 돈다
+ *     (켜는 순간 저절로 서버 방식으로 바뀐다 — kakaoReady()).
+ * ------------------------------------------------------------------- */
+const KEY_TRIAL_SESS = "pmus.trialSess";     // 카카오 로그인 정보 (수파베이스 로그인 표)
+const KEY_TRIAL_SRV = "blic.trialServer";    // 서버가 정한 체험 시작 시각 (ms)
+let _kakaoOn = null;
+
+async function kakaoReady() {
+    if (_kakaoOn !== null) return _kakaoOn;
+    try {
+        const r = await fetch(SB_URL + "/auth/v1/settings", { headers: { apikey: SB_KEY }, cache: "no-store" });
+        const j = await r.json();
+        _kakaoOn = !!(j.external && j.external.kakao);
+        localStorage.setItem("pmus.kakaoOn", _kakaoOn ? "1" : "0");
+    } catch (e) {
+        _kakaoOn = localStorage.getItem("pmus.kakaoOn") === "1";    // 인터넷이 안 되면 지난번 값
+    }
+    return _kakaoOn;
+}
+
+/** 카카오 로그인 주소 — 로그인하면 지금 화면으로 돌아온다 */
+export function kakaoLoginUrl() {
+    const back = location.origin + location.pathname;
+    return SB_URL + "/auth/v1/authorize?provider=kakao&redirect_to=" + encodeURIComponent(back);
+}
+
+/** 카카오 로그인에서 돌아왔으면 주소 끝(#)의 로그인 정보를 저장하고 주소를 깨끗이 한다 */
+export function takeLoginFromUrl() {
+    if (!/access_token=/.test(location.hash)) return false;
+    const q = new URLSearchParams(location.hash.slice(1));
+    const sess = {
+        access_token: q.get("access_token"),
+        refresh_token: q.get("refresh_token"),
+        expires_at: Number(q.get("expires_at")) || Math.floor(Date.now() / 1000) + Number(q.get("expires_in") || 3600),
+    };
+    if (sess.access_token && sess.refresh_token) localStorage.setItem(KEY_TRIAL_SESS, JSON.stringify(sess));
+    history.replaceState(null, "", location.pathname + location.search);
+    try { sessionStorage.setItem("pmus.trialJustStarted", "1"); } catch (e) { /* 개인 모드 */ }
+    return true;
+}
+
+/** 로그인 표가 2분 안에 끝나면 새로 받는다. 로그인이 끝났으면 null, 인터넷이 안 되면 오류 */
+async function trialSession() {
+    let s = null;
+    try { s = JSON.parse(localStorage.getItem(KEY_TRIAL_SESS) || "null"); } catch (e) { /* 깨진 값 */ }
+    if (!s || !s.refresh_token) return null;
+    if (s.expires_at && s.expires_at > Date.now() / 1000 + 120) return s;
+    const r = await fetch(SB_URL + "/auth/v1/token?grant_type=refresh_token", {
+        method: "POST", headers: { apikey: SB_KEY, "content-type": "application/json" },
+        body: JSON.stringify({ refresh_token: s.refresh_token }), cache: "no-store",
+    });
+    if (r.status === 400 || r.status === 401) { localStorage.removeItem(KEY_TRIAL_SESS); return null; }
+    if (!r.ok) throw new Error("token " + r.status);
+    const j = await r.json();
+    s = { access_token: j.access_token, refresh_token: j.refresh_token,
+          expires_at: j.expires_at || Math.floor(Date.now() / 1000) + (j.expires_in || 3600) };
+    localStorage.setItem(KEY_TRIAL_SESS, JSON.stringify(s));
+    return s;
+}
+
+/**
+ * 서버에 체험 시작일을 묻는다 (처음이면 서버가 정한다).
+ * 이 브라우저에 예전 방식 시작일이 있으면 넘긴다 — 서버는 그보다 늦추지 않는다.
+ */
+export async function syncTrial() {
+    let s;
+    try { s = await trialSession(); } catch (e) { return null; }
+    if (!s) return null;
+    const local = parseInt((await Preferences.get({ key: KEY_TRIAL_START })).value, 10);
+    try {
+        const r = await fetch(SB_URL + "/rest/v1/rpc/start_trial", {
+            method: "POST",
+            headers: { apikey: SB_KEY, authorization: "Bearer " + s.access_token, "content-type": "application/json" },
+            body: JSON.stringify({
+                hint: isFinite(local) && local > 0 ? new Date(local).toISOString() : null,
+                device: await getDeviceCode(),
+            }),
+            cache: "no-store",
+        });
+        if (!r.ok) return null;
+        const ms = Date.parse(await r.json());
+        if (!isFinite(ms)) return null;
+        await Preferences.set({ key: KEY_TRIAL_SRV, value: String(ms) });
+        await Preferences.set({ key: KEY_TRIAL_START, value: String(ms) });
+        return ms;
+    } catch (e) {
+        return null;
+    }
+}
+
+/** 시작 시각으로 체험 상태를 만든다 */
+function trialFrom(start, deviceCode, fresh) {
+    const now = Date.now();
+    const endsAt = start + TRIAL_DAYS * 86400 * 1000;
+    const msLeft = endsAt - now;
+    if (msLeft <= 0) {
+        return {
+            active: false, trial: true, trialEnded: true,
+            reason: TRIAL_DAYS + "일 무료 체험이 끝났습니다",
+            detail: "계속 쓰시려면 라이선스를 구매해 등록해 주세요",
+            features: [], daysLeft: 0, endsAt, deviceCode,
+        };
+    }
+    return {
+        active: true, trial: true, trialFresh: fresh,
+        features: ["*"],
+        payload: { shop: TRIAL_DAYS + "일 무료 체험", plan: "trial", feat: ["*"] },
+        daysLeft: Math.ceil(msLeft / 86400000),
+        hoursLeft: Math.ceil(msLeft / 3600000),
+        endsAt, deviceCode,
+    };
+}
+
 async function trialLicense(deviceCode) {
+    // 카카오 로그인이 켜져 있으면 서버 기록으로 — 로그인 정보와 서버 시작일이 함께 있어야 한다
+    if (await kakaoReady()) {
+        let sess = null;
+        try { sess = JSON.parse(localStorage.getItem(KEY_TRIAL_SESS) || "null"); } catch (e) { /* 깨진 값 */ }
+        let srv = parseInt((await Preferences.get({ key: KEY_TRIAL_SRV })).value, 10);
+        if (sess && !isFinite(srv)) srv = await syncTrial();
+        if (!sess || !isFinite(srv) || !srv) {
+            return {
+                active: false, trial: true, needsTrialLogin: true,
+                reason: "카카오 로그인으로 7일 무료 체험을 시작합니다",
+                features: [], daysLeft: null, deviceCode,
+            };
+        }
+        let fresh = false;
+        try { fresh = sessionStorage.getItem("pmus.trialJustStarted") === "1"; sessionStorage.removeItem("pmus.trialJustStarted"); } catch (e) { /* 개인 모드 */ }
+        // '체험 시작' 안내는 정말 처음 시작한 때만 (다른 기기에서 다시 로그인한 경우는 안내하지 않는다)
+        return trialFrom(srv, deviceCode, fresh && Date.now() - srv < 10 * 60 * 1000);
+    }
+
+    // (카카오를 켜기 전) 예전처럼 이 브라우저 기록으로
     const now = Date.now();
     let start = parseInt((await Preferences.get({ key: KEY_TRIAL_START })).value, 10);
     let fresh = false;
@@ -508,6 +647,10 @@ async function revokedInfo(lic) {
 export async function syncRevocations() {
     // 직원용은 사용 중지 목록 대신 열 때마다 승인을 다시 본다 — 그대로 getLicense 로 넘긴다
     if ((await edition()).staff) return true;
+    // 체험 중인 웹앱은 서버 시작일도 다시 받아 둔다 (브라우저 기록을 고쳐 늘리는 것 막기)
+    if (isWebApp() && !(await Preferences.get({ key: KEY_TOKEN })).value && localStorage.getItem(KEY_TRIAL_SESS)) {
+        await syncTrial();
+    }
     try {
         const ctrl = typeof AbortController === "function" ? new AbortController() : null;
         const timer = ctrl ? setTimeout(() => ctrl.abort(), 5000) : 0;

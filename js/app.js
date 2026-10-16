@@ -10,13 +10,13 @@
  * =========================================================================
  */
 
-import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, engineStatus } from "./face-detect.js?v=113";
-import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=113";
-import * as License from "./license.js?v=113";
-import * as Custom from "./custom-designs.js?v=113";
-import * as Update from "./update.js?v=113";
+import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, engineStatus } from "./face-detect.js?v=114";
+import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=114";
+import * as License from "./license.js?v=114";
+import * as Custom from "./custom-designs.js?v=114";
+import * as Update from "./update.js?v=114";
 
-const BUILD = "113";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
+const BUILD = "114";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
 /**
  * 작업용 사진의 최대 변 길이.
  *
@@ -669,7 +669,7 @@ async function refreshLicense() {
     }
 
     // 구매하지 않은 부위 탭 잠금
-    document.querySelectorAll(".mode-tab").forEach((tab) => {
+    document.querySelectorAll(".mode-tab:not(.is-soon)").forEach((tab) => {
         const f = tab.dataset.feat;
         const ok = hasFeature(f);
         tab.classList.toggle("is-locked", !ok);
@@ -1903,6 +1903,11 @@ function bindEvents() {
 
     document.querySelectorAll(".mode-tab").forEach((tab) => {
         tab.addEventListener("click", async () => {
+            // 아이라인 · 헤어라인(SMP) — 시뮬레이터를 만드는 중. 고르지는 않고 안내만 한다.
+            if (tab.dataset.soon) {
+                toast(tab.dataset.soon + " 시뮬레이터는 준비 중입니다 — 완성되면 업데이트로 바로 추가됩니다", 3200);
+                return;
+            }
             if (!hasFeature(tab.dataset.feat)) {
                 toast(`${License.featureLabel(tab.dataset.feat)}는 별도 구매가 필요합니다`);
                 return;

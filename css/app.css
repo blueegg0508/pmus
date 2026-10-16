@@ -201,6 +201,10 @@ body {
     cursor: pointer;
 }
 .mode-tab.is-active { background: var(--accent); color: #221c33; }
+/* 아이라인 · 헤어라인(SMP) — 준비 중. 넓으면 네 칸 한 줄, 좁은 폰은 두 칸 두 줄 */
+@media (min-width: 480px) { .mode-tabs { grid-template-columns: repeat(4, 1fr); } }
+.mode-tab small { display: block; margin-top: 2px; font-size: 10.5px; font-weight: 600; opacity: .8; }
+.mode-tab.is-soon { color: var(--muted); opacity: .6; border: 1px dashed var(--line); padding: 7px 6px; }
 
 /* ── 디자인 선택 ── */
 .design-grid {

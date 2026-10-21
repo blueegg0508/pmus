@@ -10,13 +10,13 @@
  * =========================================================================
  */
 
-import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, engineStatus } from "./face-detect.js?v=122";
-import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=122";
-import * as License from "./license.js?v=122";
-import * as Custom from "./custom-designs.js?v=122";
-import * as Update from "./update.js?v=122";
+import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, engineStatus } from "./face-detect.js?v=123";
+import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=123";
+import * as License from "./license.js?v=123";
+import * as Custom from "./custom-designs.js?v=123";
+import * as Update from "./update.js?v=123";
 
-const BUILD = "122";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
+const BUILD = "123";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
 /**
  * 작업용 사진의 최대 변 길이.
  *
@@ -1625,11 +1625,12 @@ async function buildDesignGrid() {
 
     // '내 디자인' 탭 끝에만 '내 디자인 등록' 카드
     if (designTab !== "mine") return;
-    const add = document.createElement("button");
+    // 이름표(label)로 — 앨범 단추와 같은 이유 (갤러리가 바로 열리게)
+    const add = document.createElement("label");
     add.className = "design-card design-add";
-    add.type = "button";
+    add.htmlFor = "design-file";
+    add.setAttribute("role", "button");
     add.innerHTML = `<i>＋</i><span>내 디자인 등록</span>`;
-    add.addEventListener("click", () => $("design-file").click());
     grid.appendChild(add);
 }
 
@@ -1938,7 +1939,10 @@ async function applyEditMode(mode, fromSim) {
 
 function bindEvents() {
     $("btn-camera").addEventListener("click", openCamera);
-    $("btn-gallery").addEventListener("click", () => $("file-gallery").click());
+    // 앨범: 단추가 입력칸의 이름표(label)라 누르면 브라우저가 바로 연다. 코드로 대신 열면(click())
+    // 삼성 인터넷이 '작업 선택(카메라 · 캠코더 · 파일)' 을 먼저 띄웠다 (2026-10-21 원장님 기기 시험).
+    // 키보드로 고를 때만 대신 열어 준다.
+    $("btn-gallery").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("file-gallery").click(); } });
     $("file-camera").addEventListener("change", (e) => handlePhoto(e.target.files[0]));
     $("file-gallery").addEventListener("change", (e) => handlePhoto(e.target.files[0]));
 

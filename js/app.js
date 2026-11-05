@@ -10,13 +10,13 @@
  * =========================================================================
  */
 
-import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, detectPose, engineStatus } from "./face-detect.js?v=156";
-import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=156";
-import * as License from "./license.js?v=156";
-import * as Custom from "./custom-designs.js?v=156";
-import * as Update from "./update.js?v=156";
+import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, detectPose, engineStatus } from "./face-detect.js?v=157";
+import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=157";
+import * as License from "./license.js?v=157";
+import * as Custom from "./custom-designs.js?v=157";
+import * as Update from "./update.js?v=157";
 
-const BUILD = "156";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
+const BUILD = "157";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
 /**
  * 작업용 사진의 최대 변 길이.
  *
@@ -284,7 +284,7 @@ function bailToSettings(msg) {
 async function mountSimulator(kind, cfg) {
     // 파일을 받아오는 동안에도 화면을 벗어날 수 있다. 받아온 뒤 한 번 더 본다.
     const my = renderToken;
-    const [css, markup, js, muiCss, muiJs, helperJs] = await Promise.all([
+    const [css, markup, js, muiCss, muiJs, helperJs, iconJs] = await Promise.all([
         fetchText(`css/${kind}.css`),
         fetchText(`js/${kind}-markup.html`),
         fetchText(`js/${kind}-canvas.js`),
@@ -292,6 +292,8 @@ async function mountSimulator(kind, cfg) {
         fetchText("js/mobile-ui.js"),
         // 원래 눈썹을 흐리게 하는 계산. 캔버스 JS 가 바로 쓰므로 그보다 먼저 싣는다.
         kind === "brow" ? fetchText("js/brow-erase.js") : Promise.resolve(""),
+        // 이모지 → 선 아이콘 (앱 화면과 같은 표)
+        fetchText("js/line-icons.js"),
     ]);
 
     // 이번 마운트의 번호. **문서 문자열을 만들기 전에** 넣어야 한다.
@@ -319,6 +321,7 @@ window.__blReport=s;})();<\/script>
 <style>${muiCss}</style></head>
 <body>
 ${fillTemplate(markup, cfg)}
+<script>${iconJs}<\/script>
 <script>window.CFG = ${JSON.stringify(cfg)};<\/script>
 <script>${helperJs}<\/script>
 <script>${js}<\/script>
@@ -2131,7 +2134,7 @@ function judgePose(raw) {
     const now = performance.now();
     if (!live.okSince) live.okSince = now;
     if (!auto) { setCamStatus("좋아요 — 지금 찍으세요", "ok"); return; }
-    setCamStatus("좋아요! 그대로 계세요 — 자동으로 찍습니다", "ok");
+    setCamStatus("좋아요, 그대로 계세요 — 자동으로 찍습니다", "ok");
     if (now - live.okSince >= POSE.holdMs) {
         stopLive();
         shoot();
@@ -2378,7 +2381,7 @@ function diagCountPixels(dataUrl) {
                 c.width = 0; c.height = 0;
                 resolve(im.naturalWidth + "×" + im.naturalHeight
                         + " · 남은 화소 " + n + " · " + kb + "KB"
-                        + (n === 0 ? "  ← 비었음!" : ""));
+                        + (n === 0 ? "  ← 비었음" : ""));
             } catch (e) {
                 resolve("되읽기 실패 — " + ((e && e.message) || e));
             }

@@ -527,7 +527,7 @@
             [w, w * 2 + gap].forEach(function (r) { x.fillText("© " + shop, r - sf * 0.8, head + h - sf * 0.6); });
             x.shadowBlur = 0;
         }
-        x.fillStyle = "#D4AF37"; x.fillRect(0, head + h, cv.width, 2);
+        x.fillStyle = "#c99a72"; x.fillRect(0, head + h, cv.width, 2);
         var lf = Math.max(12, Math.min(22, Math.round(cv.width * 0.014)));
         x.font = "600 " + lf + "px Pretendard, 'Malgun Gothic', sans-serif";
         x.fillStyle = "#C8C4BE"; x.textAlign = "center"; x.textBaseline = "middle";
@@ -944,7 +944,7 @@
                     var drawH = tileH(idx);
                     var top = y + Math.round((cellH - drawH) / 2);
 
-                    x.fillStyle = "#1B1626";
+                    x.fillStyle = "#1b171d";
                     x.fillRect(left, top, TW, drawH);
 
                     // 배너는 이미 떼어낸 그림이다. 통째로 그린다 — 잘라내지 않는다.
@@ -1961,7 +1961,7 @@
         for (var i = 0; i < bs.length; i++) {
             var b = bs[i];
             var want = b.getAttribute("data-l" + lv);
-            if (want !== null && b.textContent !== want) b.textContent = want;
+            if (want !== null && b.getAttribute("data-lv") !== String(lv)) { b.textContent = want; b.setAttribute("data-lv", String(lv)); }
         }
     }
 

@@ -1383,7 +1383,7 @@ html.ed-staff body.sim-fullscreen.settings-open .settings-toggle { left: 0; righ
 .trial-form > label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; color: var(--text, #f3ece6); }
 .trial-form > label b { color: #ebcba9; }
 .trial-form > label i { font-style: normal; font-weight: 500; color: var(--muted, #a89a92); font-size: 12px; }
-.trial-form input:not([type="checkbox"]) {
+.trial-form input:not([type="checkbox"]), .trial-form select {
     width: 100%; box-sizing: border-box; padding: 11px 12px; border-radius: 10px;
     border: 1px solid #443b47; background: #1b171d; color: #f3ece6; font: inherit; font-size: 15px; font-weight: 500;
 }

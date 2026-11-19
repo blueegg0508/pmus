@@ -1387,6 +1387,17 @@ html.ed-staff body.sim-fullscreen.settings-open .settings-toggle { left: 0; righ
     width: 100%; box-sizing: border-box; padding: 11px 12px; border-radius: 10px;
     border: 1px solid #443b47; background: #1b171d; color: #f3ece6; font: inherit; font-size: 15px; font-weight: 500;
 }
+/* 알게 된 경로 (2026-11-20) — 눌러서 고르는 칩, 여러 개 가능 */
+.tf-src { display: grid; gap: 6px; font-size: 13px; font-weight: 700; color: var(--text, #f3ece6); }
+.tf-src > span b { color: #ebcba9; }
+.tf-src > span i { font-style: normal; font-weight: 500; color: var(--muted, #a89a92); font-size: 12px; }
+.tf-src-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.tf-chip { position: relative; cursor: pointer; }
+.tf-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.tf-chip span { display: inline-block; padding: 8px 12px; border-radius: 999px; border: 1px solid #443b47; background: #1b171d; color: #d9cfc8; font-size: 13.5px; font-weight: 500; line-height: 1.2; }
+.tf-chip input:checked + span { border-color: #c99a72; background: rgba(201, 154, 114, .18); color: #f3ece6; font-weight: 700; }
+.tf-chip input:checked + span::before { content: "✓ "; color: #ebcba9; }
+.tf-chip input:focus-visible + span { outline: 2px solid #ebcba9; outline-offset: 2px; }
 .trial-consents { display: grid; gap: 6px; padding: 12px; border-radius: 12px; background: rgba(0,0,0,.22); border: 1px solid #2f2832; }
 .trial-consents label { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.45; cursor: pointer; }
 .trial-consents input[type="checkbox"] { width: 18px; height: 18px; margin: 1px 0 0; flex: 0 0 auto; accent-color: #c99a72; }

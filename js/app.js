@@ -10,13 +10,13 @@
  * =========================================================================
  */
 
-import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, detectPose, engineStatus } from "./face-detect.js?v=193";
-import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=193";
-import * as License from "./license.js?v=193";
-import * as Custom from "./custom-designs.js?v=193";
-import * as Update from "./update.js?v=193";
+import { initFaceLandmarker, detectFaceGeometry, detectLipLandmarks, standardLipLandmarks, detectPose, engineStatus } from "./face-detect.js?v=194";
+import { buildEyebrowConfig, lastCanvasRequest } from "./prepare-eyebrow.js?v=194";
+import * as License from "./license.js?v=194";
+import * as Custom from "./custom-designs.js?v=194";
+import * as Update from "./update.js?v=194";
 
-const BUILD = "193";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
+const BUILD = "194";                   // 에셋 캐시 무효화용 (수정 시 올릴 것)
 /**
  * 작업용 사진의 최대 변 길이.
  *
@@ -334,7 +334,7 @@ async function mountSimulator(kind, cfg) {
     // 기존 컨트롤의 이벤트 핸들러가 살아 있는 상태로 이동시킬 수 있다.
     const sa = safeAreaInsets();
     let doc = `<!DOCTYPE html>
-<html lang="ko"><head><meta charset="utf-8">
+<html lang="ko" translate="no" class="notranslate"><head><meta charset="utf-8"><meta name="google" content="notranslate">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <style>:root{--sa-top:${sa.top}px;--sa-bottom:${sa.bottom}px;--sa-left:${sa.left}px;--sa-right:${sa.right}px}</style>${i18nHead}
 <script>(function(){
@@ -2672,6 +2672,29 @@ function manualSay(text) {
     if (el) el.textContent = text || "";
 }
 
+/**
+ * 메뉴얼 창에도 언어팩 (2026-11-20) — 같은 출처라 다 열린 뒤 안에 사전과 i18n.js 를 넣는다.
+ * 메뉴얼 문서 자체(드라이브 사본 포함)는 손대지 않는다. 문단째 번역은 [data-i18n-blocks] 로 켠다.
+ */
+function injectManualI18n() {
+    const I = window.PMUS_I18N;
+    const frame = $("manual-frame");
+    if (!I || I.lang === "ko" || !frame) return;
+    Promise.resolve(I.ready).then(async () => {
+        const d = I.dict();
+        if (!d) return;
+        if (i18nJsText === null) i18nJsText = await fetchText("js/i18n.js").catch(() => "");
+        const w = frame.contentWindow, doc = frame.contentDocument;
+        if (!i18nJsText || !w || !doc || !doc.documentElement || w.PMUS_I18N) return;
+        doc.documentElement.setAttribute("data-i18n-blocks", "");
+        w.__I18N_LANG = I.lang;
+        w.__I18N_DICT = d;
+        const sc = doc.createElement("script");
+        sc.textContent = i18nJsText;
+        (doc.head || doc.documentElement).appendChild(sc);
+    }).catch(() => { /* 번역을 못 넣으면 한국어로 */ });
+}
+
 /** 앱에 같이 실린 메뉴얼 */
 function showBundledManual(why) {
     const frame = $("manual-frame");
@@ -2683,6 +2706,7 @@ function showBundledManual(why) {
 async function openManual() {
     $("manual-view").hidden = false;
     const frame = $("manual-frame");
+    if (!frame.__i18nHook) { frame.__i18nHook = true; frame.addEventListener("load", injectManualI18n); }
     frame.removeAttribute("src");
     frame.removeAttribute("srcdoc");
 
